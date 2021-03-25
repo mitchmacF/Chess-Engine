@@ -33,6 +33,10 @@ U64 getPosition(Square sq) {
 	return 1ULL<<sq;
 }
 
+void undo_move(struct Board *to, struct Board *from) {
+	copy(to, from);
+}
+
 // this is the place where you only update board parameters -> if you have to do more then maybe reconsider move gen functions
 bool make_move(Move mv) {
 	// copy(to, from)

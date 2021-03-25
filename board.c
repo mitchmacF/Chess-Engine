@@ -20,12 +20,23 @@ int main() {
 	/* Parse board position string */
 	parseFEN(FEN);
 
-	printCharBoard();
-	//printState();
-
 	/* Generate all possible moves for current board state */
 	generateAllMoves(bd->to_move);
 	printMoveList();
+
+	fillCharBoard();
+	printCharBoard();
+
+	make_move(mv_list->moves[0]);
+	fillCharBoard();
+	printCharBoard();
+	printMoveList();
+	printf("\n");
+	make_move(mv_list->moves[0]);
+	fillCharBoard();
+	printCharBoard();
+	printMoveList();
+	printf("\n");
 
 	free(tbls);
 	free(bd);

@@ -29,6 +29,8 @@ extern bool attacked(U64 piece_location, U64 board_state, U64 side);
 extern void generateAllMoves();
 extern bool make_move(Move mv);
 extern void update_bb(Piece pc, U64 to, U64 from);
+extern U64 Pop(U64 bb);
+extern void undo_move(struct Board *to, struct Board *from);
 
 /* IO */
 extern void printState();
@@ -36,6 +38,7 @@ extern void parseFEN(char *FEN);
 extern void printboard(U64 n);
 extern void printMoveList();
 extern void printCharBoard();
+extern void fillCharBoard();
 
 /* Initialization */
 extern void init_all();

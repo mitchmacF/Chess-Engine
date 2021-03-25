@@ -65,9 +65,9 @@ void printboard(U64 n){
 }
 
 void printCharBoard() {
-	for(int j = 0; j<64; j++) {
+	for(int j = 63; j>=0; j--) {
 		printf("%c ", board[j]);   
-		if(j != 0 && (j+1) % 8 == 0) {
+		if((j) % 8 == 0) {
 			printf("\n");
 		}
 	}
@@ -83,6 +83,96 @@ void printCharBoard() {
 	printf("\n");
 	printf("%llu\n", bd->ep);
 	printf("%d %d\n\n", bd->half_move, bd->whole_move);
+}
+
+void fillCharBoard() {
+	U64 loc;
+	
+	/* White Pieces */
+	U64 w_pawn = bd->WhitePawns;
+	while(w_pawn) {
+		loc = bitScanForward(w_pawn);
+		board[loc] = 'P'; 
+		w_pawn = Pop(w_pawn);
+	}
+
+	U64 w_rook = bd->WhiteRooks;
+	while(w_rook) {
+		loc = bitScanForward(w_rook);
+		board[loc] = 'R'; 
+		w_rook = Pop(w_rook);
+	}
+
+	U64 w_knight = bd->WhiteKnights;
+	while(w_knight) {
+		loc = bitScanForward(w_knight);
+		board[loc] = 'N'; 
+		w_knight = Pop(w_knight);
+	}
+
+	U64 w_bishop = bd->WhiteBishops;
+	while(w_bishop) {
+		loc = bitScanForward(w_bishop);
+		board[loc] = 'B'; 
+		w_bishop = Pop(w_bishop);
+	}
+
+	U64 w_queen = bd->WhiteQueens;
+	while(w_queen) {
+		loc = bitScanForward(w_queen);
+		board[loc] = 'Q'; 
+		w_queen = Pop(w_queen);
+	}
+
+	U64 w_king = bd->WhiteKing;
+	while(w_king) {
+		loc = bitScanForward(w_king);
+		board[loc] = 'K'; 
+		w_king = Pop(w_king);
+	}
+	
+	/* Black Pieces */
+	U64 b_pawn = bd->BlackPawns;
+	while(b_pawn) {
+		loc = bitScanForward(b_pawn);
+		board[loc] = 'p'; 
+		b_pawn = Pop(b_pawn);
+	}
+
+	U64 b_rook = bd->BlackRooks;
+	while(b_rook) {
+		loc = bitScanForward(b_rook);
+		board[loc] = 'r'; 
+		b_rook = Pop(b_rook);
+	}
+
+	U64 b_knight = bd->BlackKnights;
+	while(b_knight) {
+		loc = bitScanForward(b_knight);
+		board[loc] = 'n'; 
+		b_knight = Pop(b_knight);
+	}
+
+	U64 b_bishop = bd->BlackBishops;
+	while(b_bishop) {
+		loc = bitScanForward(b_bishop);
+		board[loc] = 'b'; 
+		b_bishop = Pop(b_bishop);
+	}
+
+	U64 b_queen = bd->BlackQueens;
+	while(b_queen) {
+		loc = bitScanForward(b_queen);
+		board[loc] = 'q'; 
+		b_queen = Pop(b_queen);
+	}
+
+	U64 b_king = bd->BlackKing;
+	while(b_king) {
+		loc = bitScanForward(b_king);
+		board[loc] = 'k'; 
+		b_king = Pop(b_king);
+	}
 }
 
 void printState() {
@@ -150,7 +240,7 @@ void printState() {
 //"bnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 void parseFEN(char *FEN) {
 
-	int rank = 8, file = 1, empty = 0, count, i, j = 0; 
+	int rank = 8, file = 1, empty = 0, count, i;
 
 	while(*FEN) {
 		i = rank_file_idx(rank, file);
@@ -231,52 +321,40 @@ void parseFEN(char *FEN) {
 				continue;
 
 			case 'K':
-				board[j] = 'K';
 				bd->WhiteKing |= getPosition(i);
 				break;
 			case 'Q':
-				board[j] = 'Q';
 				bd->WhiteQueens |= getPosition(i);
 				break;
 			case 'B':
-				board[j] = 'B';
 				bd->WhiteBishops |= getPosition(i);
 				break;
 			case 'N':
-				board[j] = 'N';
 				bd->WhiteKnights |= getPosition(i);
 				break;
 			case 'R':
-				board[j] = 'R';
 				bd->WhiteRooks |= getPosition(i);
 				break;
 			case 'P':
-				board[j] = 'P';
 				bd->WhitePawns |= getPosition(i);
 				break;
 
 			case 'k':
-				board[j] = 'k';
 				bd->BlackKing |= getPosition(i);
 				break;
 			case 'q':
-				board[j] = 'q';
 				bd->BlackQueens |= getPosition(i);
 				break;
 			case 'b':
-				board[j] = 'b';
 				bd->BlackBishops |= getPosition(i);
 				break;
 			case 'n':
-				board[j] = 'n';
 				bd->BlackKnights |= getPosition(i);
 				break;
 			case 'r':
-				board[j] = 'r';
 				bd->BlackRooks |= getPosition(i);
 				break;
 			case 'p':
-				board[j] = 'p';
 				bd->BlackPawns |= getPosition(i);
 				break;
 			default:
@@ -285,7 +363,6 @@ void parseFEN(char *FEN) {
 
 		*FEN++;
 		if(!empty) {
-			j+=count;
 			file+=count;
 		}
 	}
