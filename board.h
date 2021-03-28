@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#define MAX_MOVES 128
+#define MAX_MOVES 256 
 //#define getPosition(sq) (1ULL<<sq)
 
 typedef unsigned long long U64;

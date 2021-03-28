@@ -4,11 +4,11 @@
 #include <string.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <time.h>
 #include "board.h"
 #include "extern.h"
 
-// it would be nice to have char board that updates after every move
-
+// Update move list
 int main() {
 	//char *FEN = "8/pppppppp/8/8/8/8/PPPPPPPP/8 w KQkq - 0 1";
 	//char *FEN = "r3k2r/p1ppqpb1/bn2p1pn/3PN3/1p2P3/2N2p2/PPPBBPPP/R3K1RQ w KQkq - 0 1";
@@ -16,28 +16,23 @@ int main() {
 	
 	/* Initialize lookup tables, board, etc. */
 	init_all();
+	srand(time(0));
+	int idx;
 
 	/* Parse board position string */
 	parseFEN(FEN);
 
 	/* Generate all possible moves for current board state */
-	generateAllMoves(bd->to_move);
-	printMoveList();
 
-	fillCharBoard();
-	printCharBoard();
-
-	make_move(mv_list->moves[0]);
-	fillCharBoard();
-	printCharBoard();
-	printMoveList();
-	printf("\n");
-	make_move(mv_list->moves[0]);
-	fillCharBoard();
-	printCharBoard();
-	printMoveList();
-	printf("\n");
-
+	for(int i = 0; i < 100; i++) {
+		generateAllMoves(bd->to_move);
+		printf("\n");
+		idx = rand() % mv_list->total_count;
+		printMove(mv_list->moves[idx]);
+		make_move(mv_list->moves[idx]);
+		printCharBoard();
+	}
+	
 	free(tbls);
 	free(bd);
 	return 0;

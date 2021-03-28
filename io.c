@@ -37,6 +37,18 @@ void printMoveList() {
 	}
 }
 
+void printMove(Move mv) {
+	char *from, *to;
+	int curr_mv; 
+
+	curr_mv = mv.mv;
+
+	from = move_notation[ (curr_mv & (0x3f))    ];
+	to =   move_notation[ (curr_mv & (0x3f<<6))>>6 ];
+
+	printf("%s%s\n", from, to);
+}
+
 void printboard(U64 n){
 	char bits[64];
     U64 i; 
@@ -65,12 +77,16 @@ void printboard(U64 n){
 }
 
 void printCharBoard() {
-	for(int j = 63; j>=0; j--) {
-		printf("%c ", board[j]);   
+	fillCharBoard();
+	for(int j = 56; j>=0; j-=8) {
+		for(int k = j; k<j+8; k++) {
+			printf("%c ", board[k]);   
+		}
 		if((j) % 8 == 0) {
 			printf("\n");
 		}
 	}
+	
 	printf("\n");
 	if(bd->to_move) 
 		printf("Black\n");
@@ -87,6 +103,7 @@ void printCharBoard() {
 
 void fillCharBoard() {
 	U64 loc;
+	memset(board, '.', 64*sizeof(char));
 	
 	/* White Pieces */
 	U64 w_pawn = bd->WhitePawns;

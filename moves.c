@@ -42,15 +42,21 @@ bool make_move(Move mv) {
 	// copy(to, from)
 	copy(undo_bd, bd);
 
-	U64 from = (U64)((mv.mv & (0x3f)) + 1);
-	U64 to = (U64)(((mv.mv & (0x3f<<6))>>6) + 1);
-	U64 flag = (U64)((mv.mv & (0x03<<14))>>14);
+	int from = (U64)((mv.mv & (0x3f)));
+	U64 from_U64 = IDXtoU64(from);
+	printf("from: %s\n", move_notation[from]);
+	int to = (U64)(((mv.mv & (0x3f<<6))>>6));
+	U64 to_U64 = IDXtoU64(to);
+	printf("to: %s\n", move_notation[to]);
+	int flag = (U64)((mv.mv & (0x03<<14))>>14);
+	printf("flag: %d\n", flag);
 	Piece pc_to_move = mv.pc;
+	printf("piece to move: %d\n", mv.pc);
 	
 	switch(flag) {
 		// attacking or quiet move
 		case 0:
-			update_bb(pc_to_move, to, from);
+			update_bb(pc_to_move, to_U64, from_U64);
 			break;
 		// promotion -> Pawn to Queen is default for now
 		case 1:
@@ -99,6 +105,12 @@ bool make_move(Move mv) {
 	}
 	// set en pas flag off
 	bd->ep = 0ULL;
+	if(bd->to_move == WHITE)
+		bd->to_move = BLACK;
+	else 
+		bd->to_move = WHITE;
+	mv_list->total_count = 0;
+
 	
 	if(bd->to_move == WHITE) {
 		if(attacked(bd->WhiteKing, bd->AllPieces, bd->WhitePieces)) {
@@ -225,17 +237,22 @@ void update_bb(Piece pc, U64 to, U64 from) {
 // bits 12-13: promotion piece type -> see enum Pieces
 // bits 14-15: special move flag: promotion (1), en passant (2), castling (3)
 void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsigned int flag, Piece p) {
-	U64 current_move, from_U64;
+	U64 current_move, from_U64, to_U64;
 	unsigned int to;
 
 	//printboard(moves);
 	//printf("\n");
 	while(moves) {
 		to = U64toIDX(moves);
-		from_U64 = IDXtoU64((Square)from);
+		to_U64 = IDXtoU64(U64toIDX(moves));
+		//printf("to: %d\n", to);
+		//printf("to (llu): %llu\n", to_U64);
+		from_U64 = IDXtoU64(from);
+		//printf("from: %d\n", from);
+		//printf("from (llu): %llu\n", from_U64);
 
 		// check for promotion
-		if((to & tbls->MaskRank[RANK_1] || to & tbls->MaskRank[RANK_8]) && (from_U64 & bd->WhitePawns || from_U64 & bd->BlackPawns)) {
+		if((to_U64 & tbls->MaskRank[RANK_1] || to_U64 & tbls->MaskRank[RANK_8]) && (from_U64 & bd->WhitePawns || from_U64 & bd->BlackPawns)) {
 			flag |= 0x01;
 		} 
 

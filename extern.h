@@ -39,6 +39,7 @@ extern void printboard(U64 n);
 extern void printMoveList();
 extern void printCharBoard();
 extern void fillCharBoard();
+extern void printMove(Move mv);
 
 /* Initialization */
 extern void init_all();
