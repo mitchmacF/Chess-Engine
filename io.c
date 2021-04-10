@@ -6,47 +6,84 @@
 
 #define rank_file_idx(r, f) ( ((r-1) * 8) + (f-1) )
 
-/*
-8	56 57 58 59 60 61 62 64
-7	48 49 50 51 52 53 54 55
-6	40 41 42 43 44 45 46 47
-5	32 33 34 35 36 37 38 39 
-4	24 25 26 27 28 29 30 21
-3	16 17 18 19 20 21 22 23
-2	8  9  10 11 12 13 14 15
-1	1  2  3  4  5  6  7  8
-
-r
-  c	1  2  3  4  5  6  7  8
-*/
-
 void printMoveList() {
 	int i, curr_mv, score; 
-	char *from, *to;
+	char *from, *to, *piece;
+	Piece pc;
 
 	printf("Total Move Count: %d\n", mv_list->total_count);
 	
 	for(i = 0; i < mv_list->total_count; i++) {
 		curr_mv = mv_list->moves[i].mv;
 		score = mv_list->moves[i].mv_score;
+		pc = mv_list->moves[i].pc;
 
 		from = move_notation[ (curr_mv & (0x3f))    ];
 		to =   move_notation[ (curr_mv & (0x3f<<6))>>6 ];
 
-		printf("%s%s\n", from, to);
+		switch(pc) {
+			case 1: 
+				piece = "King"; 
+				break;
+			case 2: 
+				piece = "Queen";
+				break;
+			case 3: 
+				piece = "Rook";
+				break;
+			case 4: 
+				piece = "Bishop";
+				break;
+			case 5: 
+				piece = "Knight";
+				break;
+			case 6: 
+				piece = "Pawn";
+				break;
+			default:
+				printf("Error -> no piece detected");
+				break;
+		}
+
+		printf("%s%s %s\n", from, to, piece);
 	}
 }
 
 void printMove(Move mv) {
-	char *from, *to;
-	int curr_mv; 
+	char *from, *to, *piece;
+	int curr_mv, pc; 
 
 	curr_mv = mv.mv;
+	pc = mv.pc;
 
 	from = move_notation[ (curr_mv & (0x3f))    ];
 	to =   move_notation[ (curr_mv & (0x3f<<6))>>6 ];
 
-	printf("%s%s\n", from, to);
+	switch(pc) {
+		case 1: 
+			piece = "King"; 
+			break;
+		case 2: 
+			piece = "Queen";
+			break;
+		case 3: 
+			piece = "Rook";
+			break;
+		case 4: 
+			piece = "Bishop";
+			break;
+		case 5: 
+			piece = "Knight";
+			break;
+		case 6: 
+			piece = "Pawn";
+			break;
+		default:
+			printf("Error -> no piece detected");
+			break;
+	}
+
+	printf("%s%s %s\n", from, to, piece);
 }
 
 void printboard(U64 n){
@@ -78,14 +115,20 @@ void printboard(U64 n){
 
 void printCharBoard() {
 	fillCharBoard();
+	int rank = 8;
 	for(int j = 56; j>=0; j-=8) {
 		for(int k = j; k<j+8; k++) {
+			if(k == j) {
+				printf("%d ", rank);
+				rank--;
+			}
 			printf("%c ", board[k]);   
 		}
 		if((j) % 8 == 0) {
 			printf("\n");
 		}
 	}
+	printf("  a b c d e f g h\n");
 	
 	printf("\n");
 	if(bd->to_move) 
@@ -223,6 +266,9 @@ void printState() {
 	printf("all white pieces\n");
 	printboard(bd->WhitePieces);
 	
+	printf("all white attacking\n");
+	printboard(bd->WhiteAttacking);
+	
 	printf(">>>>>>>>>>>>>>>>>>>> Printing board info for black\n");
 	
 	printf("pawns\n");
@@ -251,10 +297,12 @@ void printState() {
 
 	printf("all black pieces\n");
 	printboard(bd->BlackPieces);
+	
+	printf("all black attacking\n");
+	printboard(bd->BlackAttacking);
 
 }
 
-//"bnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 void parseFEN(char *FEN) {
 
 	int rank = 8, file = 1, empty = 0, count, i;

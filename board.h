@@ -87,6 +87,8 @@ struct Board {
 	/* Other useful bitboards */
 	U64 WhitePieces;
 	U64 BlackPieces;
+	U64 WhiteAttacking;
+	U64 BlackAttacking;
 	U64 AllPieces;
 
 	/* To move: 0 - w, 1 - b */

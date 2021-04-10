@@ -14,7 +14,9 @@
 
 /* Find constant time version of this function */
 U64 bitScanForward(U64 bb) {
-	int i = 1; assert(bb != 0);
+	if(bb == 0)
+		return 0ULL;
+	int i = 1; //assert(bb != 0);
 	U64 sq = 1ULL;
 	while(!(bb & sq)) {
 		sq = 1ULL<<i;
@@ -33,6 +35,10 @@ U64 getPosition(Square sq) {
 	return 1ULL<<sq;
 }
 
+U64 flip(U64 x) {
+    return  ((x << 56)) | ((x << 40) & (0x00ff000000000000)) | ((x << 24) & (0x0000ff0000000000)) | ((x << 8) & (0x000000ff00000000)) | ((x >> 8) & (0x00000000ff000000)) | ((x >> 24) & (0x0000000000ff0000)) | ((x >> 40) & (0x000000000000ff00)) | ((x >> 56));
+}
+
 void undo_move(struct Board *to, struct Board *from) {
 	copy(to, from);
 }
@@ -44,14 +50,14 @@ bool make_move(Move mv) {
 
 	int from = (U64)((mv.mv & (0x3f)));
 	U64 from_U64 = IDXtoU64(from);
-	printf("from: %s\n", move_notation[from]);
+	//printf("from: %s\n", move_notation[from]);
 	int to = (U64)(((mv.mv & (0x3f<<6))>>6));
 	U64 to_U64 = IDXtoU64(to);
-	printf("to: %s\n", move_notation[to]);
+	//printf("to: %s\n", move_notation[to]);
 	int flag = (U64)((mv.mv & (0x03<<14))>>14);
-	printf("flag: %d\n", flag);
+	//printf("flag: %d\n", flag);
 	Piece pc_to_move = mv.pc;
-	printf("piece to move: %d\n", mv.pc);
+	//printf("piece to move: %d\n", mv.pc);
 	
 	switch(flag) {
 		// attacking or quiet move
@@ -71,6 +77,7 @@ bool make_move(Move mv) {
 		// castle -> turn off castle flag in bd
 		case 3:
 			if(bd->to_move == WHITE) {
+				printf(">>>>>>>>>>>>>>>>>>>> WHITE CASTLING\n");
 				bd->WhiteKing ^= from;
 				bd->WhiteKing |= to;
 				// King-side
@@ -85,6 +92,7 @@ bool make_move(Move mv) {
 					bd->castle[1] = '-';
 				}
 			} else if(bd->to_move == BLACK) {
+				printf(">>>>>>>>>>>>>>>>>>>> BLACK CASTLING\n");
 				bd->BlackKing ^= from;
 				bd->BlackKing |= to;
 				// King-side
@@ -105,24 +113,26 @@ bool make_move(Move mv) {
 	}
 	// set en pas flag off
 	bd->ep = 0ULL;
-	if(bd->to_move == WHITE)
-		bd->to_move = BLACK;
-	else 
-		bd->to_move = WHITE;
-	mv_list->total_count = 0;
 
 	
 	if(bd->to_move == WHITE) {
 		if(attacked(bd->WhiteKing, bd->AllPieces, bd->WhitePieces)) {
+			printf(">>> Attacked!!\n");
 			copy(bd, undo_bd);
 			return 0;
 		}
 	} else if(bd->to_move = BLACK) {
 		if(attacked(bd->BlackKing, bd->AllPieces, bd->BlackPieces)) {
+			printf(">>> Attacked!!\n");
 			copy(bd, undo_bd);
 			return 0;
 		}
 	}
+	mv_list->total_count = 0;
+	if(bd->to_move == WHITE)
+		bd->to_move = BLACK;
+	else 
+		bd->to_move = WHITE;
 	
 	return 1;
 }
@@ -236,7 +246,7 @@ void update_bb(Piece pc, U64 to, U64 from) {
 // bits  6-11: destination (0 - 63)
 // bits 12-13: promotion piece type -> see enum Pieces
 // bits 14-15: special move flag: promotion (1), en passant (2), castling (3)
-void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsigned int flag, Piece p) {
+void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsigned int flag, Piece p, Side side) {
 	U64 current_move, from_U64, to_U64;
 	unsigned int to;
 
@@ -272,34 +282,20 @@ void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsign
 	}
 }
 
-void genMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side, Piece p) {
-	U64 piece, moves, from, ep_attackers;
-	
-	while(pieces) {
-		piece = IDXtoU64(U64toIDX(pieces));
-		moves = (*f)(piece, all_pieces, side);
-		if(moves) {
-			from = U64toIDX(pieces);
-			fill_move_list(moves, from, 0x00, 0x00, p);
-		} 
-		pieces = Pop(pieces);
-	}
-}
-
 // check for errors
-void genSpecialMoves() {
+void genSpecialMoves(Side to_move) {
 	U64 pieces, piece, moves, from, ep_attackers;
 	
-	// en passant -> enPas() returns locations of pawns that can capture ep square
+	// en passant 
 	ep_attackers = enPas();
 	while(ep_attackers) {
 		from = U64toIDX(ep_attackers);
-		fill_move_list(bd->ep, from, 0x00, 0x02, PAWN);
+		fill_move_list(bd->ep, from, 0x00, 0x02, PAWN, to_move);
 		ep_attackers = Pop(ep_attackers);
 	} 
 	
 	// castling -> gen_castle_moves return locations (king or queen side) that king can move
-	if(bd->to_move == WHITE) { 
+	if(to_move == WHITE) { 
 		moves = generate_castling_moves(bd->WhiteKing, bd->AllPieces, bd->WhitePieces);
 		from = bd->WhiteKing;
 	} else {
@@ -308,17 +304,98 @@ void genSpecialMoves() {
 	}
 	while(moves) {
 		U64 to = U64toIDX(moves);
-		fill_move_list(to, from, 0x00, 0x03, KING);
+		fill_move_list(to, from, 0x00, 0x03, KING, to_move);
 		moves = Pop(moves);
 	} 
 }
 
-// need to change to only generate moves for side who's turn it is
-void generateAllMoves(Side side_to_move) {
-	U64 (*fn_ptr)(U64, U64, U64);
-	genSpecialMoves();
+void genMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side, Piece p) {
+	U64 piece, moves, from, ep_attackers;
 	
-	if(side_to_move == WHITE) {
+	while(pieces) {
+		piece = IDXtoU64(U64toIDX(pieces));
+		moves = (*f)(piece, all_pieces, side);
+		if(moves) {
+			from = U64toIDX(pieces);
+			fill_move_list(moves, from, 0x00, 0x00, p, side);
+		} 
+		pieces = Pop(pieces);
+	}
+}
+
+void genAttackingMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side) {
+	U64 piece, moves, from, ep_attackers;
+	
+	while(pieces) {
+		piece = IDXtoU64(U64toIDX(pieces));
+		moves = (*f)(piece, all_pieces, side);
+		if(moves) {
+			if(side & bd->WhitePieces) {
+				bd->WhiteAttacking |= moves;
+			} else {
+				bd->BlackAttacking |= moves;
+			}
+		} 
+		pieces = Pop(pieces);
+	}
+}
+
+void generateWhiteAttackingMoves() {
+	U64 (*fn_ptr)(U64, U64, U64);
+	//genSpecialMoves(WHITE);
+	
+	bd->WhiteAttacking &= ~bd->WhiteAttacking;
+
+	fn_ptr = &generate_white_pawn_moves;
+	genAttackingMoves(fn_ptr, bd->WhitePawns, bd->AllPieces, bd->WhitePieces);
+
+	fn_ptr = &generate_king_moves;
+	genAttackingMoves(fn_ptr, bd->WhiteKing, bd->AllPieces, bd->WhitePieces);
+
+	fn_ptr = &generate_queen_moves;
+	genAttackingMoves(fn_ptr, bd->WhiteQueens, bd->AllPieces, bd->WhitePieces);
+
+	fn_ptr = &generate_bishop_moves;
+	genAttackingMoves(fn_ptr, bd->WhiteBishops, bd->AllPieces, bd->WhitePieces);
+
+	fn_ptr = &generate_knight_moves;
+	genAttackingMoves(fn_ptr, bd->WhiteKnights, bd->AllPieces, bd->WhitePieces);
+
+	fn_ptr = &generate_rook_moves;
+	genAttackingMoves(fn_ptr, bd->WhiteRooks, bd->AllPieces, bd->WhitePieces);
+}
+
+void generateBlackAttackingMoves() {
+	U64 (*fn_ptr)(U64, U64, U64);
+	//genSpecialMoves(BLACK);
+
+	bd->BlackAttacking &= ~bd->BlackAttacking;
+	
+	fn_ptr = &generate_black_pawn_moves;
+	genAttackingMoves(fn_ptr, bd->BlackPawns, bd->AllPieces, bd->BlackPieces);
+
+	fn_ptr = &generate_king_moves;
+	genAttackingMoves(fn_ptr, bd->BlackKing, bd->AllPieces, bd->BlackPieces);
+
+	fn_ptr = &generate_queen_moves;
+	genAttackingMoves(fn_ptr, bd->BlackQueens, bd->AllPieces, bd->BlackPieces);
+
+	fn_ptr = &generate_bishop_moves;
+	genAttackingMoves(fn_ptr, bd->BlackBishops, bd->AllPieces, bd->BlackPieces);
+
+	fn_ptr = &generate_knight_moves;
+	genAttackingMoves(fn_ptr, bd->BlackKnights, bd->AllPieces, bd->BlackPieces);
+
+	fn_ptr = &generate_rook_moves;
+	genAttackingMoves(fn_ptr, bd->BlackRooks, bd->AllPieces, bd->BlackPieces);
+}
+
+// need to change to only generate moves for side who's turn it is
+void generateAllMoves() {
+	U64 (*fn_ptr)(U64, U64, U64);
+	genSpecialMoves(bd->to_move);
+	
+	if(bd->to_move == WHITE) {
 		
 		fn_ptr = &generate_white_pawn_moves;
 		genMoves(fn_ptr, bd->WhitePawns, bd->AllPieces, bd->WhitePieces, PAWN);
@@ -338,7 +415,7 @@ void generateAllMoves(Side side_to_move) {
 		fn_ptr = &generate_rook_moves;
 		genMoves(fn_ptr, bd->WhiteRooks, bd->AllPieces, bd->WhitePieces, ROOK);
 
-	} else if (side_to_move == BLACK) {
+	} else if (bd->to_move == BLACK) {
 		
 		fn_ptr = &generate_black_pawn_moves;
 		genMoves(fn_ptr, bd->BlackPawns, bd->AllPieces, bd->BlackPieces, PAWN);
@@ -363,21 +440,27 @@ void generateAllMoves(Side side_to_move) {
 	}
 }
 
-U64 flip(U64 x) {
-    return  ((x << 56)) | ((x << 40) & (0x00ff000000000000)) | ((x << 24) & (0x0000ff0000000000)) | ((x << 8) & (0x000000ff00000000)) | ((x >> 8) & (0x00000000ff000000)) | ((x >> 24) & (0x0000000000ff0000)) | ((x >> 40) & (0x000000000000ff00)) | ((x >> 56));
-}
-
 U64 generate_castling_moves(U64 king_location, U64 all_pieces, U64 side) {
 	U64 opp_side, castle_king_side = 0ULL, castle_queen_side = 0ULL;
 	bool king, queen = 1; 
 
 	// King side 
-	if((king_location<<1 & side) || (king_location<<2 & side) || attacked(king_location, all_pieces, side) || attacked(king_location<<1, all_pieces, side) || attacked(king_location<<2, all_pieces, side)) {
+	/*if((king_location<<1 & side) || (king_location<<2 & side) || attacked(king_location, all_pieces, side) || attacked(king_location<<1, all_pieces, side) || attacked(king_location<<2, all_pieces, side)) {
 		king = 0;
 	}
 
 	// Queen side
 	if((king_location>>1 & side) || (king_location>>2 & side) || attacked(king_location, all_pieces, side) || attacked(king_location>>1, all_pieces, side) || attacked(king_location>>2, all_pieces, side)) {
+		queen = 0;
+	}*/
+	
+	// King side 
+	if((king_location<<1 & side) || (king_location<<2 & side)) {
+		king = 0;
+	}
+
+	// Queen side
+	if((king_location>>1 & side) || (king_location>>2 & side)) {
 		queen = 0;
 	}
 	
@@ -400,21 +483,21 @@ U64 generate_castling_moves(U64 king_location, U64 all_pieces, U64 side) {
 	return (castle_king_side | castle_queen_side);
 }
 
-U64 enPas() {
+U64 enPas(Side to_move) {
 	if(!bd->ep) 
 		return 0ULL;
 	
 	U64 ep_sq = IDXtoU64(bd->ep);
 	U64 pawn_attackers = 0ULL;
 
-	if(bd->to_move == WHITE) { 
+	if(to_move == WHITE) { 
 		if((ep_sq>>7 & bd->WhitePawns)) {
 			pawn_attackers |= ep_sq>>7;
 		}
 		if((ep_sq>>9 & bd->WhitePawns)) {
 			pawn_attackers |= ep_sq>>9;
 		}
-	} else if(bd->to_move == BLACK) {
+	} else if(to_move == BLACK) {
 		if(ep_sq<<7 & bd->BlackPawns) {
 			pawn_attackers |= ep_sq<<7;
 		}
@@ -549,22 +632,16 @@ U64 generate_queen_moves(U64 queen_location, U64 board_state, U64 side) {
 	return FileAttacks(sq, board_state, side) | RankAttacks(sq, side, opp_side) | DiagonalAttacks(sq, board_state, side) | AntiDiagonalAttacks(sq, board_state, side);
 }
 
-// super_piece & opp_side will not work 
 bool attacked(U64 piece_location, U64 board_state, U64 side) {
-	Square sq = bitScanForward(piece_location);
-	U64 square_position = getPosition(sq);
-	
-	U64 opp_side = ~side;
-
-	U64 super_piece = generate_queen_moves(sq, board_state, side) | generate_knight_moves(square_position, board_state, side);
-
-	if(side & bd->WhitePieces) {
-		if(super_piece & (bd->WhitePawns | bd->WhiteRooks | bd->WhiteKnights | bd->WhiteBishops | bd->WhiteKing | bd->WhiteQueens))
+	if(bd->to_move == WHITE) {
+		generateBlackAttackingMoves();
+		if(bd->BlackAttacking & piece_location) 
 			return true;
 		else 
 			return false;
 	} else {
-		if(super_piece & (bd->BlackPawns | bd->BlackRooks | bd->BlackKnights | bd->BlackBishops | bd->BlackKing | bd->BlackQueens))
+		generateWhiteAttackingMoves();
+		if(bd->WhiteAttacking & piece_location) 
 			return true;
 		else 
 			return false;

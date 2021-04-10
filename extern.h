@@ -27,6 +27,8 @@ extern U64 generate_rook_moves(U64 rook_location, U64 all_pieces, U64 side);
 extern U64 enPas();
 extern bool attacked(U64 piece_location, U64 board_state, U64 side);
 extern void generateAllMoves();
+void generateWhiteMoves();
+void generateBlackMoves();
 extern bool make_move(Move mv);
 extern void update_bb(Piece pc, U64 to, U64 from);
 extern U64 Pop(U64 bb);

@@ -91,6 +91,8 @@ void init_board() {
 
 	bd->WhitePieces = 0ULL;
 	bd->BlackPieces = 0ULL;
+	bd->WhiteAttacking = 0ULL;
+	bd->BlackAttacking = 0ULL;
 	bd->AllPieces = 0ULL;
 
 	bd->to_move = 0;
@@ -122,6 +124,8 @@ void init_board() {
 
 	undo_bd->WhitePieces = 0ULL;
 	undo_bd->BlackPieces = 0ULL;
+	undo_bd->WhiteAttacking = 0ULL;
+	undo_bd->BlackAttacking = 0ULL;
 	undo_bd->AllPieces = 0ULL;
 
 	undo_bd->to_move = 0;
@@ -138,6 +142,7 @@ void init_board() {
 }
 
 void copy(struct Board *to, struct Board *from) {
+	
 	to->WhitePawns = from->WhitePawns;
 	to->WhiteRooks = from->WhiteRooks;
 	to->WhiteKnights = from->WhiteKnights;
@@ -154,6 +159,8 @@ void copy(struct Board *to, struct Board *from) {
 
 	to->WhitePieces = from->WhitePieces;
 	to->BlackPieces = from->BlackPieces;
+	to->WhiteAttacking = from->WhiteAttacking;
+	to->BlackAttacking = from->BlackAttacking;
 	to->AllPieces = from->AllPieces;
 
 	to->to_move = from->to_move;
