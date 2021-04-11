@@ -25,7 +25,34 @@ int main() {
 	/* Generate all possible moves for current board state */
 
 	for(int i = 0; i < 100; i++) {
-		printf("Move Number: %d\n", i);
+		//printState();
+		printf("\nMove Number: %d\n", i);
+		generateAllMoves(bd->to_move);
+		printMoveList();
+		printf("\n");
+		fflush(stdout);
+		//idx = rand() % mv_list->total_count;
+		scanf("%d", &idx);
+		//idx = 0;
+		printMove(mv_list->moves[idx]);
+		while(1) {
+			if(make_move(mv_list->moves[idx])) {
+				//printf("\nBREAKING <<<<<< \n");
+				break;
+			}
+			idx = rand() % mv_list->total_count;
+			printf("\nNEW IDX <<<<<< \n");
+		}
+		if(!(bd->WhitePieces & ~bd->WhiteKing) && !(bd->BlackPieces & ~bd->BlackKing)) {
+			printCharBoard();
+			printf("\nGAME IS DRAWN...goodbye\n");
+			break;
+		}
+		printCharBoard();
+	}
+
+	/*for(int i = 0; i < 100; i++) {
+		printf("\nMove Number: %d", i);
 		generateAllMoves(bd->to_move);
 		//printMoveList();
 		printf("\n");
@@ -39,13 +66,14 @@ int main() {
 			idx = rand() % mv_list->total_count;
 			printf("\nNEW IDX <<<<<< \n");
 		}
-		/*if(!(bd->WhitePieces & ~bd->WhiteKing) && !(bd->BlackPieces & ~bd->BlackKing)) {
+		if(!(bd->WhitePieces & ~bd->WhiteKing) && !(bd->BlackPieces & ~bd->BlackKing)) {
 			printCharBoard();
 			printf("\nGAME IS DRAWN...goodbye\n");
 			break;
-		}*/
+		}
 		printCharBoard();
-	}
+	}*/
+
 	
 	free(tbls);
 	free(bd);

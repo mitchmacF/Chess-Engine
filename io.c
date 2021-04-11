@@ -7,11 +7,11 @@
 #define rank_file_idx(r, f) ( ((r-1) * 8) + (f-1) )
 
 void printMoveList() {
-	int i, curr_mv, score; 
+	int i, curr_mv, score, flag; 
 	char *from, *to, *piece;
 	Piece pc;
 
-	printf("Total Move Count: %d\n", mv_list->total_count);
+	printf("Total Move List Count: %d\n", mv_list->total_count);
 	
 	for(i = 0; i < mv_list->total_count; i++) {
 		curr_mv = mv_list->moves[i].mv;
@@ -20,6 +20,7 @@ void printMoveList() {
 
 		from = move_notation[ (curr_mv & (0x3f))    ];
 		to =   move_notation[ (curr_mv & (0x3f<<6))>>6 ];
+		flag = (curr_mv & (0x03<<14))>>14;
 
 		switch(pc) {
 			case 1: 
@@ -45,7 +46,24 @@ void printMoveList() {
 				break;
 		}
 
-		printf("%s%s %s\n", from, to, piece);
+		switch(flag) {
+			case 0:
+				printf("%d: %s%s %s    ", i, from, to, piece);
+				break;
+			case 1:
+				printf("%d: %s%s PROMOTION    ", i, from, to);
+				break;
+			case 2: 
+				printf("%d: %s%s EN PAS    ", i, from, to);
+				break;
+			case 3: 
+				printf("%d: %s%s CASTLE    ", i, from, to);
+				break;
+			default:
+				printf("Move flag not set!!\n");
+				break;
+		}
+
 	}
 }
 
@@ -132,16 +150,16 @@ void printCharBoard() {
 	
 	printf("\n");
 	if(bd->to_move) 
-		printf("Black\n");
-	else
 		printf("White\n");
+	else
+		printf("Black\n");
 
 	for(int k = 0; k < 4; k++) {
 		printf("%c", bd->castle[k]);
 	}
 	printf("\n");
 	printf("%llu\n", bd->ep);
-	printf("%d %d\n\n", bd->half_move, bd->whole_move);
+	//printf("%d %d\n\n", bd->half_move, bd->whole_move);
 }
 
 void fillCharBoard() {
