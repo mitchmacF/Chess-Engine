@@ -44,7 +44,7 @@ U64 flip(U64 x) {
 // bits  6-11: destination (0 - 63)
 // bits 12-13: promotion piece type -> see enum Pieces
 // bits 14-15: special move flag: promotion (1), en passant (2), castling (3)
-void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsigned int flag, Piece p, Side side) {
+void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsigned int flag, Piece p, Side side, struct Move_list *mv_list) {
 	U64 current_move, from_U64, to_U64;
 	unsigned int to;
 
@@ -148,7 +148,7 @@ void generateBlackAttackingMoves() {
 }
 
 // check for errors
-void genSpecialMoves(Side to_move) {
+void genSpecialMoves(Side to_move, struct Move_list *mv_list) {
 	
 	U64 pieces, piece, moves, from, ep_attackers;
 	
@@ -156,7 +156,7 @@ void genSpecialMoves(Side to_move) {
 	ep_attackers = enPas(to_move);
 	while(ep_attackers) {
 		from = U64toIDX(ep_attackers);
-		fill_move_list(IDXtoU64(bd->ep), from, 0x00, 0x02, PAWN, to_move);
+		fill_move_list(IDXtoU64(bd->ep), from, 0x00, 0x02, PAWN, to_move, mv_list);
 		ep_attackers = Pop(ep_attackers);
 	} 
 	
@@ -174,12 +174,12 @@ void genSpecialMoves(Side to_move) {
 		}*/
 		//U64 to = U64toIDX(moves);
 		//fill_move_list(to, from, 0x00, 0x03, KING, to_move);
-		fill_move_list(moves, from, 0x00, 0x03, KING, to_move);
+		fill_move_list(moves, from, 0x00, 0x03, KING, to_move, mv_list);
 		//moves = Pop(moves);
 	//} 
 }
 
-void genMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side, Piece p) {
+void genMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side, Piece p, struct Move_list *mv_list) {
 	U64 piece, moves, from, ep_attackers;
 	
 	while(pieces) {
@@ -187,55 +187,55 @@ void genMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side, Pie
 		moves = (*f)(piece, all_pieces, side);
 		if(moves) {
 			from = U64toIDX(pieces);
-			fill_move_list(moves, from, 0x00, 0x00, p, side);
+			fill_move_list(moves, from, 0x00, 0x00, p, side, mv_list);
 		} 
 		pieces = Pop(pieces);
 	}
 }
 
-void generateAllMoves() {
+void generateAllMoves(struct Move_list *mv_list) {
 	U64 (*fn_ptr)(U64, U64, U64);
-	genSpecialMoves(bd->to_move);
+	genSpecialMoves(bd->to_move, mv_list);
 	
 	if(bd->to_move == WHITE) {
 		
 		fn_ptr = &generate_white_pawn_moves;
-		genMoves(fn_ptr, bd->WhitePawns, bd->AllPieces, bd->WhitePieces, PAWN);
+		genMoves(fn_ptr, bd->WhitePawns, bd->AllPieces, bd->WhitePieces, PAWN, mv_list);
 
 		fn_ptr = &generate_king_moves;
-		genMoves(fn_ptr, bd->WhiteKing, bd->AllPieces, bd->WhitePieces, KING);
+		genMoves(fn_ptr, bd->WhiteKing, bd->AllPieces, bd->WhitePieces, KING, mv_list);
 
 		fn_ptr = &generate_queen_moves;
-		genMoves(fn_ptr, bd->WhiteQueens, bd->AllPieces, bd->WhitePieces, QUEEN);
+		genMoves(fn_ptr, bd->WhiteQueens, bd->AllPieces, bd->WhitePieces, QUEEN, mv_list);
 
 		fn_ptr = &generate_bishop_moves;
-		genMoves(fn_ptr, bd->WhiteBishops, bd->AllPieces, bd->WhitePieces, BISHOP);
+		genMoves(fn_ptr, bd->WhiteBishops, bd->AllPieces, bd->WhitePieces, BISHOP, mv_list);
 
 		fn_ptr = &generate_knight_moves;
-		genMoves(fn_ptr, bd->WhiteKnights, bd->AllPieces, bd->WhitePieces, KNIGHT);
+		genMoves(fn_ptr, bd->WhiteKnights, bd->AllPieces, bd->WhitePieces, KNIGHT, mv_list);
 
 		fn_ptr = &generate_rook_moves;
-		genMoves(fn_ptr, bd->WhiteRooks, bd->AllPieces, bd->WhitePieces, ROOK);
+		genMoves(fn_ptr, bd->WhiteRooks, bd->AllPieces, bd->WhitePieces, ROOK, mv_list);
 
 	} else if (bd->to_move == BLACK) {
 		
 		fn_ptr = &generate_black_pawn_moves;
-		genMoves(fn_ptr, bd->BlackPawns, bd->AllPieces, bd->BlackPieces, PAWN);
+		genMoves(fn_ptr, bd->BlackPawns, bd->AllPieces, bd->BlackPieces, PAWN, mv_list);
 
 		fn_ptr = &generate_king_moves;
-		genMoves(fn_ptr, bd->BlackKing, bd->AllPieces, bd->BlackPieces, KING);
+		genMoves(fn_ptr, bd->BlackKing, bd->AllPieces, bd->BlackPieces, KING, mv_list);
 
 		fn_ptr = &generate_queen_moves;
-		genMoves(fn_ptr, bd->BlackQueens, bd->AllPieces, bd->BlackPieces, QUEEN);
+		genMoves(fn_ptr, bd->BlackQueens, bd->AllPieces, bd->BlackPieces, QUEEN, mv_list);
 
 		fn_ptr = &generate_bishop_moves;
-		genMoves(fn_ptr, bd->BlackBishops, bd->AllPieces, bd->BlackPieces, BISHOP);
+		genMoves(fn_ptr, bd->BlackBishops, bd->AllPieces, bd->BlackPieces, BISHOP, mv_list);
 
 		fn_ptr = &generate_knight_moves;
-		genMoves(fn_ptr, bd->BlackKnights, bd->AllPieces, bd->BlackPieces, KNIGHT);
+		genMoves(fn_ptr, bd->BlackKnights, bd->AllPieces, bd->BlackPieces, KNIGHT, mv_list);
 
 		fn_ptr = &generate_rook_moves;
-		genMoves(fn_ptr, bd->BlackRooks, bd->AllPieces, bd->BlackPieces, ROOK);
+		genMoves(fn_ptr, bd->BlackRooks, bd->AllPieces, bd->BlackPieces, ROOK, mv_list);
 
 	} else {
 		printf("Error: side_to_move\n");

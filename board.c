@@ -22,13 +22,33 @@ int main() {
 	/* Parse board position string */
 	parseFEN(FEN);
 
+	int depth = 2;
+	U64 nodes = Perft(depth);
+	printf("Tot nodes = %llu\n", nodes);
+
+	/******************/
+	
+		//generateAllMoves(mv_list);
+		//printCharBoard();
+		/*printf("\n");
+		make_move(mv_list->moves[0]);
+		printCharBoard();
+		printf("\n");
+		undo_move(bd, undo_bd);
+		printCharBoard();
+		printf("\n");*/
+
+
+
+	/******************/
+
 	/* Generate all possible moves for current board state */
 
-	for(int i = 0; i < 100; i++) {
+	/*for(int i = 0; i < 100; i++) {
 		//printState();
 		printf("\nMove Number: %d\n", i);
-		generateAllMoves(bd->to_move);
-		printMoveList();
+		generateAllMoves(mv_list);
+		printMoveList(mv_list);
 		printf("\n");
 		fflush(stdout);
 		//idx = rand() % mv_list->total_count;
@@ -49,7 +69,7 @@ int main() {
 			break;
 		}
 		printCharBoard();
-	}
+	}*/
 
 	/*for(int i = 0; i < 100; i++) {
 		printf("\nMove Number: %d", i);

@@ -4,7 +4,7 @@
 #include "extern.h"
 
 struct Lookup_tables *tbls;
-struct Move_list *mv_list;
+//struct Move_list *mv_list;
 char *move_notation[64];
 struct Board *bd;
 struct Board *undo_bd;
@@ -31,8 +31,8 @@ void init_mv_notation() {
 void init_lookup_tables_mv_list() {
 
 	tbls = (struct Lookup_tables *)malloc(sizeof(struct Lookup_tables));
-	mv_list = (struct Move_list *)malloc(sizeof(struct Move_list));
-	mv_list->total_count = 0;
+	//mv_list = (struct Move_list *)malloc(sizeof(struct Move_list));
+	//mv_list->total_count = 0;
 	
 
 	U64 maskrank[8] = {0xFF, 0xFF00, 0xFF0000, 0xFF000000, 0xFF00000000,

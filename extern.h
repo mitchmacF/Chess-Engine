@@ -1,6 +1,6 @@
 /* Global Data Structures */
 extern struct Lookup_tables *tbls;
-extern struct Move_list *mv_list;
+//extern struct Move_list *mv_list;
 extern struct Board *bd;
 extern struct Board *undo_bd;
 extern char board[64]; 
@@ -18,7 +18,7 @@ U64 flip(U64 x);
 
 /* Move Generation */
 extern bool attacked(U64 piece_location, U64 board_state, U64 side);
-extern void generateAllMoves();
+extern void generateAllMoves(struct Move_list *mv_list);
 extern void generateWhiteMoves();
 extern void generateBlackMoves();
 U64 generate_king_moves(U64 current_king_location, U64 all_pieces, U64 side);
@@ -41,6 +41,7 @@ void update_bb_enPas(Piece pc, U64 to, U64 from);
 
 /* IO */
 extern void printState();
+extern void printUndoState();
 extern void parseFEN(char *FEN);
 extern void printboard(U64 n);
 extern void printMoveList();
@@ -52,3 +53,8 @@ extern void printMove(Move mv);
 extern void copy(struct Board *to, struct Board *from);
 extern void init_all();
 extern void initState();
+
+/* Peft */
+//void Perft(int depth, struct Move_list *mv_list);
+U64 Perft(int depth);
+//void PerftTest(int depth);

@@ -58,6 +58,7 @@ bool make_move(Move mv) {
 	if(bd->to_move == WHITE) {
 		if(attacked(bd->WhiteKing, bd->AllPieces, bd->WhitePieces)) {
 			printf(">>> Attacked!!\n");
+			printCharBoard();
 			copy(bd, undo_bd);
 			return 0;
 		}
@@ -70,7 +71,7 @@ bool make_move(Move mv) {
 	}
 
 	// reset move list
-	mv_list->total_count = 0;
+	//mv_list->total_count = 0;
 	if(bd->to_move == WHITE)
 		bd->to_move = BLACK;
 	else 
@@ -229,7 +230,7 @@ void update_bb(Piece pc, U64 to, U64 from) {
 				bd->WhitePawns |= to;
 				break;
 			default:
-				printf("ERROR: Piece to move, type unknown.");
+				printf("ERROR: Piece to move, type unknown: %d\n", pc);
 				break;
 		}
 		
@@ -295,7 +296,7 @@ void update_bb(Piece pc, U64 to, U64 from) {
 				bd->BlackPawns |= to;
 				break;
 			default:
-				printf("ERROR: Piece to move, type unknown.");
+				printf("ERROR: Piece to move, type unknown: %d\n", pc);
 				break;
 		}
 

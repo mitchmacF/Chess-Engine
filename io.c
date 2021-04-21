@@ -6,7 +6,8 @@
 
 #define rank_file_idx(r, f) ( ((r-1) * 8) + (f-1) )
 
-void printMoveList() {
+struct Move_list *mv_list;
+void printMoveList(struct Move_list *mv_list) {
 	int i, curr_mv, score, flag; 
 	char *from, *to, *piece;
 	Piece pc;
@@ -318,6 +319,74 @@ void printState() {
 	
 	printf("all black attacking\n");
 	printboard(bd->BlackAttacking);
+
+}
+
+void printUndoState() {
+
+	printf("Printing board info for white\n");
+	
+	printf("pawns\n");
+	printboard(undo_bd->WhitePawns);
+	printf("\n");
+	
+	printf("rooks\n");
+	printboard(undo_bd->WhiteRooks);
+	printf("\n");
+	
+	printf("knights\n");
+	printboard(undo_bd->WhiteKnights);
+	printf("\n");
+	
+	printf("bishops\n");
+	printboard(undo_bd->WhiteBishops);
+	printf("\n");
+	
+	printf("queen\n");
+	printboard(undo_bd->WhiteQueens);
+	printf("\n");
+	
+	printf("king\n");
+	printboard(undo_bd->WhiteKing);
+	printf("\n");
+
+	printf("all white pieces\n");
+	printboard(undo_bd->WhitePieces);
+	
+	printf("all white attacking\n");
+	printboard(undo_bd->WhiteAttacking);
+	
+	printf(">>>>>>>>>>>>>>>>>>>> Printing board info for black\n");
+	
+	printf("pawns\n");
+	printboard(undo_bd->BlackPawns);
+	printf("\n");
+	
+	printf("rooks\n");
+	printboard(undo_bd->BlackRooks);
+	printf("\n");
+	
+	printf("knights\n");
+	printboard(undo_bd->BlackKnights);
+	printf("\n");
+	
+	printf("bishops\n");
+	printboard(undo_bd->BlackBishops);
+	printf("\n");
+	
+	printf("queen\n");
+	printboard(undo_bd->BlackQueens);
+	printf("\n");
+	
+	printf("king\n");
+	printboard(undo_bd->BlackKing);
+	printf("\n");
+
+	printf("all black pieces\n");
+	printboard(undo_bd->BlackPieces);
+	
+	printf("all black attacking\n");
+	printboard(undo_bd->BlackAttacking);
 
 }
 
