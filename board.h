@@ -119,6 +119,7 @@ typedef struct {
 	int mv;
 	int mv_score;
 	Piece pc;
+	struct Board *undo;
 } Move;
 
 struct Move_list {

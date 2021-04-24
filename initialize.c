@@ -73,6 +73,39 @@ void init_lookup_tables_mv_list() {
 	}
 }
 
+void init_tmp_board(struct Board *tmp) {
+	tmp->WhitePawns = 0ULL;
+	tmp->WhiteRooks = 0ULL;
+	tmp->WhiteKnights = 0ULL;
+	tmp->WhiteBishops = 0ULL;
+	tmp->WhiteQueens = 0ULL;
+	tmp->WhiteKing = 0ULL;
+
+	tmp->BlackPawns = 0ULL;
+	tmp->BlackRooks = 0ULL;
+	tmp->BlackKnights = 0ULL;
+	tmp->BlackBishops = 0ULL;
+	tmp->BlackQueens = 0ULL;
+	tmp->BlackKing = 0ULL;
+
+	tmp->WhitePieces = 0ULL;
+	tmp->BlackPieces = 0ULL;
+	tmp->WhiteAttacking = 0ULL;
+	tmp->BlackAttacking = 0ULL;
+	tmp->AllPieces = 0ULL;
+
+	tmp->to_move = 0;
+
+	tmp->castle[0] = '\0';
+	tmp->castle[1] = '\0';
+	tmp->castle[2] = '\0';
+	tmp->castle[3] = '\0';
+	
+	tmp->ep = 0ULL;
+
+	tmp->half_move = 0;
+	tmp->whole_move = 1;
+}
 void init_board() {
 	bd = (struct Board *)malloc(sizeof(struct Board));
 	bd->WhitePawns = 0ULL;
@@ -97,10 +130,10 @@ void init_board() {
 
 	bd->to_move = 0;
 
-	bd->castle[0] = '\0';
-	bd->castle[1] = '\0';
-	bd->castle[2] = '\0';
-	bd->castle[3] = '\0';
+	bd->castle[0] = '-';
+	bd->castle[1] = '-';
+	bd->castle[2] = '-';
+	bd->castle[3] = '-';
 	
 	bd->ep = 0ULL;
 
@@ -130,10 +163,10 @@ void init_board() {
 
 	undo_bd->to_move = 0;
 
-	undo_bd->castle[0] = '\0';
-	undo_bd->castle[1] = '\0';
-	undo_bd->castle[2] = '\0';
-	undo_bd->castle[3] = '\0';
+	undo_bd->castle[0] = '-';
+	undo_bd->castle[1] = '-';
+	undo_bd->castle[2] = '-';
+	undo_bd->castle[3] = '-';
 	
 	undo_bd->ep = 0ULL;
 
@@ -172,8 +205,8 @@ void copy(struct Board *to, struct Board *from) {
 	
 	to->ep = from->ep;
 
-	to->half_move = from->half_move;
-	to->whole_move = from->whole_move;
+	//to->half_move = from->half_move;
+	//to->whole_move = from->whole_move;
 }
 
 void init_visual_board() {

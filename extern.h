@@ -46,6 +46,7 @@ extern void parseFEN(char *FEN);
 extern void printboard(U64 n);
 extern void printMoveList();
 extern void printCharBoard();
+extern void printUndoCharBoard();
 extern void fillCharBoard();
 extern void printMove(Move mv);
 
@@ -53,6 +54,7 @@ extern void printMove(Move mv);
 extern void copy(struct Board *to, struct Board *from);
 extern void init_all();
 extern void initState();
+extern void init_tmp_board(struct Board *tmp);
 
 /* Peft */
 //void Perft(int depth, struct Move_list *mv_list);

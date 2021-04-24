@@ -70,7 +70,10 @@ void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsign
 			((promotion & 	0x03) << 12	) | 
 			((flag      & 	0x03) << 14	);      
 
-		Move mv = {current_move, 0, p};
+		struct Board *tmp;
+		tmp = (struct Board *)malloc(sizeof(struct Board));
+		copy(tmp, bd);
+		Move mv = {current_move, 0, p, tmp};
 
 		// store move in move list
 		mv_list->moves[mv_list->total_count] = mv;
@@ -257,17 +260,17 @@ U64 generate_castling_moves(U64 king_location, U64 all_pieces, U64 side) {
 	}
 
 	if(side & bd->WhitePieces) {
-		if(bd->castle[0] != '\0' && king) {
+		if(bd->castle[0] != '-' && king) {
 				castle_king_side = 1ULL<<6;
 		}
-		if(bd->castle[1] != '\0' && queen) {
+		if(bd->castle[1] != '-' && queen) {
 				castle_queen_side = 1ULL<<2;
 		}
 	} else {
-		if(bd->castle[2] != '\0' && king) {
+		if(bd->castle[2] != '-' && king) {
 				castle_king_side = 1ULL<<62;
 		}
-		if(bd->castle[3] != '\0' && queen) {
+		if(bd->castle[3] != '-' && queen) {
 				castle_queen_side = 1ULL<<58;
 		}
 	}

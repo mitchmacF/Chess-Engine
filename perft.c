@@ -1,5 +1,4 @@
 // perft.c
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -12,7 +11,7 @@
 long leafNodes;
 
 U64 Perft(int depth) {
-	printf("Depth: %d\n", depth);
+	printf("Beginning of Perft Depth: %d\n", depth);
 	printCharBoard();
 	printf("\n");
 	struct Move_list *mv_list;
@@ -23,25 +22,30 @@ U64 Perft(int depth) {
 	U64 nodes = 0;
 
 	if (depth == 0) {
-		undo_move(bd, undo_bd);
 		return 1ULL;
 	}
 
 	//n_moves = GenerateLegalMoves(move_list);
 	generateAllMoves(mv_list);
+
 	for (i = 0; i < mv_list->total_count; i++) {
-		if(!make_move(mv_list->moves[i])) {
-			printf("Check!!\n");
-			continue;
+		if(make_move(mv_list->moves[i])) {
+			/*if(bd->half_move == 99) {
+				printf("GAME ENDED BY DRAW\n");
+				exit(0);
+			}*/
+			//printMoveList(mv_list);
+			//printf("\n");
+			nodes += Perft(depth - 1);
+			//printf("Check!!!\n");
+			//continue;
 		}
-		nodes += Perft(depth - 1);
-		printf(">>>> Depth: %d\n", depth);
+		/*printf("After Perft return, depth: %d i: %d and print board\n", depth, i);
 		printCharBoard();
-		printf("\n");
-		printMoveList(mv_list);
-		printf("Returned from PERFT!!\n");
-		printf("\n");
-		undo_move(bd, undo_bd);
+		printf("\n");*/
+		undo_move(bd, mv_list->moves[i].undo);
+		//printf("Print undo char board after undo\n");
+		//printUndoCharBoard();
 	}
 	return nodes;
 }

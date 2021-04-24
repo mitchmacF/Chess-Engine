@@ -150,16 +150,48 @@ void printCharBoard() {
 	printf("  a b c d e f g h\n");
 	
 	printf("\n");
-	if(bd->to_move) 
+	if(bd->to_move == 0) 
 		printf("White\n");
-	else
+	else if(bd->to_move ==1)
 		printf("Black\n");
 
 	for(int k = 0; k < 4; k++) {
 		printf("%c", bd->castle[k]);
 	}
 	printf("\n");
-	printf("%llu\n", bd->ep);
+	printf("ep: %llu\n", bd->ep);
+	printf("half_move: %d\n", bd->half_move);
+	//printf("%d %d\n\n", bd->half_move, bd->whole_move);
+}
+
+void printUndoCharBoard() {
+	fillCharBoard();
+	int rank = 8;
+	for(int j = 56; j>=0; j-=8) {
+		for(int k = j; k<j+8; k++) {
+			if(k == j) {
+				printf("%d ", rank);
+				rank--;
+			}
+			printf("%c ", board[k]);   
+		}
+		if((j) % 8 == 0) {
+			printf("\n");
+		}
+	}
+	printf("  a b c d e f g h\n");
+	
+	printf("\n");
+	if(undo_bd->to_move) 
+		printf("White\n");
+	else
+		printf("Black\n");
+
+	for(int k = 0; k < 4; k++) {
+		printf("%c", undo_bd->castle[k]);
+	}
+	printf("\n");
+	printf("%llu\n", undo_bd->ep);
 	//printf("%d %d\n\n", bd->half_move, bd->whole_move);
 }
 
@@ -390,6 +422,7 @@ void printUndoState() {
 
 }
 
+// Still not filling EP square except when it's empty
 void parseFEN(char *FEN) {
 
 	int rank = 8, file = 1, empty = 0, count, i;
@@ -401,10 +434,11 @@ void parseFEN(char *FEN) {
 		if(empty) {
 			switch(*FEN) {
 				case '-':
-					if(empty == 2) {
-						bd->castle[0] = '-';
-					} else if(empty == 3) {
-							bd->ep = 0ULL;
+					//if(empty == 2) {
+						//bd->castle[0] = '-';
+					/*} else */
+					if(empty == 3) {
+						bd->ep = 0ULL;
 					}
 					break;
 				case ' ':

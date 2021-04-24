@@ -31,7 +31,8 @@ bool make_move(Move mv) {
 	to_U64 = IDXtoU64(to);
 	flag = (U64)((mv.mv & (0x03<<14))>>14);
 	pc_to_move = mv.pc;
-	
+
+	bd->half_move++;
 	switch(flag) {
 		// attacking or quiet move
 		case 0:
@@ -39,10 +40,12 @@ bool make_move(Move mv) {
 			break;
 		// promotion 
 		case 1:
+			bd->half_move = 0;
 			update_bb_promotion(pc_to_move, to_U64, from_U64);
 			break;
 		// en Pas
 		case 2:
+			bd->half_move = 0;
 			ep_location = IDXtoU64(bd->ep);
 			update_bb_enPas(pc_to_move, ep_location, from_U64);
 			break;
@@ -57,14 +60,14 @@ bool make_move(Move mv) {
 	// check if move leaves King in check
 	if(bd->to_move == WHITE) {
 		if(attacked(bd->WhiteKing, bd->AllPieces, bd->WhitePieces)) {
-			printf(">>> Attacked!!\n");
-			printCharBoard();
+			//printf(">>> Attacked!!\n");
+			//printCharBoard();
 			copy(bd, undo_bd);
 			return 0;
 		}
 	} else if(bd->to_move = BLACK) {
 		if(attacked(bd->BlackKing, bd->AllPieces, bd->BlackPieces)) {
-			printf(">>> Attacked!!\n");
+			//printf(">>> Attacked!!\n");
 			copy(bd, undo_bd);
 			return 0;
 		}
@@ -72,10 +75,12 @@ bool make_move(Move mv) {
 
 	// reset move list
 	//mv_list->total_count = 0;
-	if(bd->to_move == WHITE)
+	if(bd->to_move == WHITE) {
 		bd->to_move = BLACK;
-	else 
+	} else {
 		bd->to_move = WHITE;
+		bd->whole_move++;
+	}
 	
 	return 1;
 }
@@ -176,7 +181,7 @@ void update_bb_castle(Piece pc, U64 to, U64 from) {
 		} else if(to & (1ULL<<58)) {
 			bd->BlackKing ^= from;
 			bd->BlackKing |= to;
-			bd->BlackRooks ^= (1ULL<<57);
+			bd->BlackRooks ^= (1ULL<<56);
 			bd->BlackRooks |= (1ULL<<59);
 			bd->castle[2] = '-';
 			bd->castle[3] = '-';
@@ -228,6 +233,7 @@ void update_bb(Piece pc, U64 to, U64 from) {
 				}
 				bd->WhitePawns ^= from;
 				bd->WhitePawns |= to;
+				bd->half_move = 0;
 				break;
 			default:
 				printf("ERROR: Piece to move, type unknown: %d\n", pc);
@@ -236,10 +242,19 @@ void update_bb(Piece pc, U64 to, U64 from) {
 		
 		// black piece captured
 		if(to & bd->BlackPieces) {
+			bd->half_move = 0;
 			bd->BlackPieces ^= to;
 			if(to & bd->BlackQueens) {
 				bd->BlackQueens ^= to;	
+			// Need logic for removing castling permissions here 
 			} else if(to & bd->BlackRooks) {
+				// Remove king-side permissions
+				if(to & (1ULL<<63)) {
+					bd->castle[2] = '-';
+				// Queen-side
+				} else if(to & (1ULL<<56)) {
+					bd->castle[3] = '-';
+				}
 				bd->BlackRooks ^= to;
 			} else if(to & bd->BlackBishops) {
 				bd->BlackBishops ^= to;
@@ -294,6 +309,7 @@ void update_bb(Piece pc, U64 to, U64 from) {
 				}
 				bd->BlackPawns ^= from;
 				bd->BlackPawns |= to;
+				bd->half_move = 0;
 				break;
 			default:
 				printf("ERROR: Piece to move, type unknown: %d\n", pc);
@@ -301,10 +317,18 @@ void update_bb(Piece pc, U64 to, U64 from) {
 		}
 
 		if(to & bd->WhitePieces) {
+			bd->half_move = 0;
 			bd->WhitePieces ^= to;
 			if(to & bd->WhiteQueens) {
 				bd->WhiteQueens ^= to;	
 			} else if(to & bd->WhiteRooks) {
+				// Remove king-side permissions
+				if(to & (1ULL<<7)) {
+					bd->castle[0] = '-';
+				// Queen-side
+				} else if(to & (1ULL<<1)) {
+					bd->castle[1] = '-';
+				} 
 				bd->WhiteRooks ^= to;
 			} else if(to & bd->WhiteBishops) {
 				bd->WhiteBishops ^= to;
