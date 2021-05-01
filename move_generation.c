@@ -47,7 +47,11 @@ U64 flip(U64 x) {
 void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsigned int flag, Piece p, Side side, struct Move_list *mv_list) {
 	U64 current_move, from_U64, to_U64;
 	unsigned int to;
+	promotion = 0;
 
+	struct Board *tmp;
+	tmp = (struct Board *)malloc(sizeof(struct Board));
+	copy(tmp, bd);
 	//printboard(moves);
 	//printf("\n");
 	while(moves) {
@@ -61,7 +65,56 @@ void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsign
 
 		// check for promotion
 		if((to_U64 & tbls->MaskRank[RANK_1] || to_U64 & tbls->MaskRank[RANK_8]) && (from_U64 & bd->WhitePawns || from_U64 & bd->BlackPawns)) {
-			flag |= 0x01;
+			flag = 0x01;
+
+			promotion = QUEEN-2;
+			current_move = 
+				((from      & 	0x3f)		) |
+				((to        & 	0x3f) << 6 	) |
+				((promotion & 	0x03) << 12	) | 
+				((flag      & 	0x03) << 14	);      
+
+
+			Move mv_q = {current_move, 0, p, tmp};
+			mv_list->moves[mv_list->total_count] = mv_q;
+			mv_list->total_count++;
+			
+			promotion = ROOK-2;
+			current_move = 
+				((from      & 	0x3f)		) |
+				((to        & 	0x3f) << 6 	) |
+				((promotion & 	0x03) << 12	) | 
+				((flag      & 	0x03) << 14	);      
+
+			Move mv_r = {current_move, 0, p, tmp};
+			mv_list->moves[mv_list->total_count] = mv_r;
+			mv_list->total_count++;
+
+			
+			promotion = BISHOP-2;
+			current_move = 
+				((from      & 	0x3f)		) |
+				((to        & 	0x3f) << 6 	) |
+				((promotion & 	0x03) << 12	) | 
+				((flag      & 	0x03) << 14	);      
+
+			Move mv_b = {current_move, 0, p, tmp};
+			mv_list->moves[mv_list->total_count] = mv_b;
+			mv_list->total_count++;
+			
+			promotion = KNIGHT-2;
+			current_move = 
+				((from      & 	0x3f)		) |
+				((to        & 	0x3f) << 6 	) |
+				((promotion & 	0x03) << 12	) | 
+				((flag      & 	0x03) << 14	);      
+
+			Move mv_n = {current_move, 0, p, tmp};
+			mv_list->moves[mv_list->total_count] = mv_n;
+			mv_list->total_count++;
+
+			moves = Pop(moves);
+			continue;
 		} 
 
 		current_move = 
@@ -70,9 +123,9 @@ void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsign
 			((promotion & 	0x03) << 12	) | 
 			((flag      & 	0x03) << 14	);      
 
-		struct Board *tmp;
+		/*struct Board *tmp;
 		tmp = (struct Board *)malloc(sizeof(struct Board));
-		copy(tmp, bd);
+		copy(tmp, bd);*/
 		Move mv = {current_move, 0, p, tmp};
 
 		// store move in move list
@@ -84,7 +137,7 @@ void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsign
 }
 
 void genAttackingMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side) {
-	U64 piece, moves, from, ep_attackers;
+	U64 piece, moves;
 	
 	while(pieces) {
 		piece = IDXtoU64(U64toIDX(pieces));
@@ -106,7 +159,7 @@ void generateWhiteAttackingMoves() {
 	
 	bd->WhiteAttacking &= ~bd->WhiteAttacking;
 
-	fn_ptr = &generate_white_pawn_moves;
+	fn_ptr = &generate_white_pawn_attacks;
 	genAttackingMoves(fn_ptr, bd->WhitePawns, bd->AllPieces, bd->WhitePieces);
 
 	fn_ptr = &generate_king_moves;
@@ -131,7 +184,7 @@ void generateBlackAttackingMoves() {
 
 	bd->BlackAttacking &= ~bd->BlackAttacking;
 	
-	fn_ptr = &generate_black_pawn_moves;
+	fn_ptr = &generate_black_pawn_attacks;
 	genAttackingMoves(fn_ptr, bd->BlackPawns, bd->AllPieces, bd->BlackPieces);
 
 	fn_ptr = &generate_king_moves;
@@ -153,9 +206,9 @@ void generateBlackAttackingMoves() {
 // check for errors
 void genSpecialMoves(Side to_move, struct Move_list *mv_list) {
 	
-	U64 pieces, piece, moves, from, ep_attackers;
+	U64 moves, from, ep_attackers;
 	
-	// en passant -> not sure if this works (bd->ep might be off by 1) 
+	// en passant
 	ep_attackers = enPas(to_move);
 	while(ep_attackers) {
 		from = U64toIDX(ep_attackers);
@@ -163,7 +216,7 @@ void genSpecialMoves(Side to_move, struct Move_list *mv_list) {
 		ep_attackers = Pop(ep_attackers);
 	} 
 	
-	// castling -> gen_castle_moves return locations (king or queen side) that king can move
+	// castling
 	if(to_move == WHITE) { 
 		moves = generate_castling_moves(bd->WhiteKing, bd->AllPieces, bd->WhitePieces);
 		from = U64toIDX(bd->WhiteKing);
@@ -171,19 +224,11 @@ void genSpecialMoves(Side to_move, struct Move_list *mv_list) {
 		moves = generate_castling_moves(bd->BlackKing, bd->AllPieces, bd->BlackPieces); 
 		from = U64toIDX(bd->BlackKing);
 	}
-	/*while(moves) {
-		if(to_move == WHITE) {
-			printf("REACH genSpecialMoves CASTLEING\n");
-		}*/
-		//U64 to = U64toIDX(moves);
-		//fill_move_list(to, from, 0x00, 0x03, KING, to_move);
-		fill_move_list(moves, from, 0x00, 0x03, KING, to_move, mv_list);
-		//moves = Pop(moves);
-	//} 
+	fill_move_list(moves, from, 0x00, 0x03, KING, to_move, mv_list);
 }
 
 void genMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side, Piece p, struct Move_list *mv_list) {
-	U64 piece, moves, from, ep_attackers;
+	U64 piece, moves, from;
 	
 	while(pieces) {
 		piece = IDXtoU64(U64toIDX(pieces));
@@ -249,13 +294,31 @@ U64 generate_castling_moves(U64 king_location, U64 all_pieces, U64 side) {
 	U64 opp_side, castle_king_side = 0ULL, castle_queen_side = 0ULL;
 	bool king = 1, queen = 1; 
 
-	// King side 
-	if((king_location<<1 & side) || (king_location<<2 & side) || attacked(king_location, all_pieces, side) || attacked(king_location<<1, all_pieces, side) || attacked(king_location<<2, all_pieces, side)) {
+	opp_side = all_pieces & ~side;
+
+	// King side castling
+	if((king_location<<1 & side) 					 || 
+	   (king_location<<2 & side) 					 || 
+	   (king_location<<1 & opp_side) 				 || 
+	   (king_location<<2 & opp_side) 				 || 
+	   attacked(king_location, all_pieces, side)     || 
+	   attacked(king_location<<1, all_pieces, side)  || 
+	   attacked(king_location<<2, all_pieces, side)) 
+	{
 		king = 0;
 	}
 
-	// Queen side
-	if((king_location>>1 & side) || (king_location>>2 & side) || attacked(king_location, all_pieces, side) || attacked(king_location>>1, all_pieces, side) || attacked(king_location>>2, all_pieces, side)) {
+	// Queen side castling
+	if((king_location>>1 & side) 					 || 
+	   (king_location>>2 & side) 					 || 
+	   (king_location>>3 & side) 					 || 
+	   (king_location>>1 & opp_side) 				 || 
+	   (king_location>>2 & opp_side) 				 || 
+	   (king_location>>3 & opp_side) 				 || 
+	   attacked(king_location, all_pieces, side) 	 || 
+	   attacked(king_location>>1, all_pieces, side)  || 
+	   attacked(king_location>>2, all_pieces, side)) 
+	{
 		queen = 0;
 	}
 
@@ -266,13 +329,16 @@ U64 generate_castling_moves(U64 king_location, U64 all_pieces, U64 side) {
 		if(bd->castle[1] != '-' && queen) {
 				castle_queen_side = 1ULL<<2;
 		}
-	} else {
+	} else if (side & bd->BlackPieces) {
 		if(bd->castle[2] != '-' && king) {
 				castle_king_side = 1ULL<<62;
 		}
 		if(bd->castle[3] != '-' && queen) {
 				castle_queen_side = 1ULL<<58;
 		}
+	} else {
+		printf("CASTLE move gen error\n");
+		exit(-1);
 	}
 	return (castle_king_side | castle_queen_side);
 }
@@ -284,19 +350,43 @@ U64 enPas(Side to_move) {
 	U64 ep_sq = IDXtoU64(bd->ep);
 	U64 pawn_attackers = 0ULL;
 
+	if(!(ep_sq & tbls->MaskRank[RANK_3] || ep_sq & tbls->MaskRank[RANK_6])) {
+		printf("Error in enPas\n");
+	}
+
 	if(to_move == WHITE) { 
-		if((ep_sq>>7 & bd->WhitePawns)) {
-			pawn_attackers |= ep_sq>>7;
-		}
-		if((ep_sq>>9 & bd->WhitePawns)) {
-			pawn_attackers |= ep_sq>>9;
+		if(IDXtoU64(bd->ep) & tbls->MaskFile[FILE_A]) {
+			if((ep_sq>>7 & bd->WhitePawns)) {
+				pawn_attackers |= ep_sq>>7;
+			}
+		} else if(IDXtoU64(bd->ep) & tbls->MaskFile[FILE_H]) {
+			if((ep_sq>>9 & bd->WhitePawns)) {
+				pawn_attackers |= ep_sq>>9;
+			}
+		} else {
+			if((ep_sq>>7 & bd->WhitePawns)) {
+				pawn_attackers |= ep_sq>>7;
+			}
+			if((ep_sq>>9 & bd->WhitePawns)) {
+				pawn_attackers |= ep_sq>>9;
+			}
 		}
 	} else if(to_move == BLACK) {
-		if(ep_sq<<7 & bd->BlackPawns) {
-			pawn_attackers |= ep_sq<<7;
-		}
-		if(ep_sq<<9 & bd->BlackPawns) {
-			pawn_attackers |= ep_sq<<9;
+		if(IDXtoU64(bd->ep) & tbls->MaskFile[FILE_A]) {
+			if(ep_sq<<9 & bd->BlackPawns) {
+				pawn_attackers |= ep_sq<<9;
+			}
+		} else if(IDXtoU64(bd->ep) & tbls->MaskFile[FILE_H]) {
+			if(ep_sq<<7 & bd->BlackPawns) {
+				pawn_attackers |= ep_sq<<7;
+			}
+		} else {
+			if(ep_sq<<7 & bd->BlackPawns) {
+				pawn_attackers |= ep_sq<<7;
+			}
+			if(ep_sq<<9 & bd->BlackPawns) {
+				pawn_attackers |= ep_sq<<9;
+			}
 		}
 	}
 	return pawn_attackers;
@@ -355,7 +445,7 @@ U64 generate_knight_moves(U64 current_knight_location, U64 all_pieces, U64 side)
 
 U64 generate_white_pawn_moves(U64 current_white_pawn_location, U64 all_pieces, U64 side) {
 
-	U64 black_pieces = all_pieces & ~side; 
+	U64 black_pieces = all_pieces & ~side;
 	
 	U64 one_rank_forward = (current_white_pawn_location << 8) & ~all_pieces;
 	
@@ -370,15 +460,26 @@ U64 generate_white_pawn_moves(U64 current_white_pawn_location, U64 all_pieces, U
 	U64 right_pawn_attack = (current_white_pawn_location & tbls->ClearFile[FILE_H]) << 9;
 	
 	// all attacks valid and invalid
-	U64 all_pawn_attacks = left_pawn_attack | right_pawn_attack;	
+	U64 all_pawn_attacks = left_pawn_attack | right_pawn_attack;
 
 	// valid attacks
-	U64 all_valid_attacks = all_pawn_attacks & black_pieces;	
+	U64 all_valid_attacks = all_pawn_attacks & black_pieces;
 
 	// all legal moves
 	U64 all_legal_white_pawn_moves = pawn_forward_moves | all_valid_attacks;
 
 	return all_legal_white_pawn_moves;
+}
+
+U64 generate_white_pawn_attacks(U64 current_white_pawn_location, U64 all_pieces, U64 side) {
+
+	// left attack
+	U64 left_pawn_attack = (current_white_pawn_location & tbls->ClearFile[FILE_A]) << 7;
+
+	// right attack
+	U64 right_pawn_attack = (current_white_pawn_location & tbls->ClearFile[FILE_H]) << 9;
+	
+	return (left_pawn_attack | right_pawn_attack);
 }
 
 U64 generate_black_pawn_moves(U64 current_black_pawn_location, U64 all_pieces, U64 side) {
@@ -409,6 +510,17 @@ U64 generate_black_pawn_moves(U64 current_black_pawn_location, U64 all_pieces, U
 	return all_legal_black_pawn_moves;
 }
 
+U64 generate_black_pawn_attacks(U64 current_black_pawn_location, U64 all_pieces, U64 side) {
+	
+	// left attack
+	U64 left_pawn_attack = (current_black_pawn_location & tbls->ClearFile[FILE_H]) >> 7;
+
+	// right attack
+	U64 right_pawn_attack = (current_black_pawn_location & tbls->ClearFile[FILE_A]) >> 9;
+
+	return (left_pawn_attack | right_pawn_attack);
+}
+
 U64 generate_bishop_moves(U64 bishop_location, U64 board_state, U64 side) {
 	Square sq = bitScanForward(bishop_location);
 	return DiagonalAttacks(sq, board_state, side) | AntiDiagonalAttacks(sq, board_state, side);
@@ -427,7 +539,43 @@ U64 generate_queen_moves(U64 queen_location, U64 board_state, U64 side) {
 }
 
 bool attacked(U64 piece_location, U64 board_state, U64 side) {
+	if(side & bd->WhitePieces) {
+		generateBlackAttackingMoves();
+		if(bd->BlackAttacking & piece_location) 
+			return true;
+		else 
+			return false;
+	} else if(side & bd->BlackPieces) {
+		generateWhiteAttackingMoves();
+		if(bd->WhiteAttacking & piece_location) 
+			return true;
+		else 
+			return false;
+	} else {
+		fprintf(stderr, "ERROR in attacked function.\n");
+		exit(-1);
+	}
+}
+
+/*bool attacked(U64 piece_location, U64 board_state, U64 side) {
 	if(bd->to_move == WHITE) {
+		generateBlackAttackingMoves();
+		if(bd->BlackAttacking & piece_location) 
+			return true;
+		else 
+			return false;
+	} else {
+		generateWhiteAttackingMoves();
+		if(bd->WhiteAttacking & piece_location) 
+			return true;
+		else 
+			return false;
+	}
+}*/
+
+// To see if current move puts other side in check
+bool createdCheck(U64 piece_location, U64 board_state, U64 side) {
+	if(bd->to_move == BLACK) {
 		generateBlackAttackingMoves();
 		if(bd->BlackAttacking & piece_location) 
 			return true;

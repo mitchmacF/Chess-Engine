@@ -38,11 +38,11 @@ enum Move_type {
 
 typedef enum {
 	KING = 1,
-	QUEEN,
-	ROOK,
-	BISHOP,
-	KNIGHT,
-	PAWN
+	QUEEN = 2,
+	ROOK = 3,
+	BISHOP = 4,
+	KNIGHT = 5,
+	PAWN = 6
 } Piece;
 
 enum { 

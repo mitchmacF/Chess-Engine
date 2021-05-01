@@ -102,7 +102,8 @@ void printMove(Move mv) {
 			break;
 	}
 
-	printf("%s%s %s\n", from, to, piece);
+	//printf("%s%s %s\n", from, to, piece);
+	printf("%s%s ", from, to);
 }
 
 void printboard(U64 n){
@@ -351,6 +352,9 @@ void printState() {
 	
 	printf("all black attacking\n");
 	printboard(bd->BlackAttacking);
+	
+	printf("all \n");
+	printboard(bd->AllPieces);
 
 }
 

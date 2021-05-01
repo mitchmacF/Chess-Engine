@@ -8,20 +8,19 @@
 #include "board.h"
 #include "extern.h"
 
-long leafNodes;
-
 U64 Perft(int depth) {
-	printf("Beginning of Perft Depth: %d\n", depth);
+	/*printf("Beginning of Perft Depth: %d\n", depth);
 	printCharBoard();
-	printf("\n");
+	printf("\n");*/
 	struct Move_list *mv_list;
 	mv_list = (struct Move_list *)malloc(sizeof(struct Move_list));
 	mv_list->total_count = 0;
 	
-	int n_moves, i;
+	int i;
 	U64 nodes = 0;
 
 	if (depth == 0) {
+		free(mv_list);
 		return 1ULL;
 	}
 
@@ -30,82 +29,27 @@ U64 Perft(int depth) {
 
 	for (i = 0; i < mv_list->total_count; i++) {
 		if(make_move(mv_list->moves[i])) {
-			/*if(bd->half_move == 99) {
-				printf("GAME ENDED BY DRAW\n");
-				exit(0);
-			}*/
+			//printf("i %d\n", i);
 			//printMoveList(mv_list);
 			//printf("\n");
-			nodes += Perft(depth - 1);
+			int temp = 0;
+			temp = Perft(depth-1);
+			/*if(depth == 1) {
+				printMove(mv_list->moves[i]);
+				printf(" %d\n", temp);
+			}*/
+			nodes += temp;
 			//printf("Check!!!\n");
 			//continue;
 		}
-		/*printf("After Perft return, depth: %d i: %d and print board\n", depth, i);
-		printCharBoard();
+		//printf("After Perft return, depth: %d i: %d and print board\n", depth, i);
+		/*printCharBoard();
 		printf("\n");*/
 		undo_move(bd, mv_list->moves[i].undo);
 		//printf("Print undo char board after undo\n");
 		//printUndoCharBoard();
 	}
+	free(mv_list->moves[0].undo);
+	free(mv_list);
 	return nodes;
 }
-
-/*void Perft(int depth) {
-
-	if(depth == 0) {
-		leafNodes++;
-		return;
-	}
-	struct Move_list *mv_list;
-	mv_list = (struct Move_list *)malloc(sizeof(struct Move_list));
-	mv_list->total_count = 0;
-
-	generateAllMoves(mv_list);
-
-	int i = 0;
-	for(i = 0; i < mv_list->total_count; ++i) {	
-
-		if ( !make_move(mv_list->moves[i]))  {
-			continue;
-		}
-		Perft(depth - 1);
-		undo_move(bd, undo_bd);
-	}
-
-	return;
-}
-
-
-void PerftTest(int depth) {
-
-	printCharBoard();
-	printf("\nStarting Test To Depth:%d\n",depth);	
-	leafNodes = 0;
-	
-	struct Move_list *mv_list;
-	mv_list = (struct Move_list *)malloc(sizeof(struct Move_list));
-	mv_list->total_count = 0;
-
-	generateAllMoves(mv_list);	
-
-	int move;	    
-	int i = 0;
-	for(i = 0; i < mv_list->total_count; ++i) {
-		Move mv = mv_list->moves[i];
-		printMove(mv);
-		if ( !make_move(mv))  {
-			continue;
-		}
-
-		long cumnodes = leafNodes;
-		Perft(depth - 1);
-		undo_move(bd, undo_bd);
-		long oldnodes = leafNodes - cumnodes;
-		printf("move %d : %ld\n",i+1,  oldnodes);
-		printMove(mv);
-	}
-
-	printf("\nTest Complete : %ld nodes visited\n",leafNodes);
-
-	return;
-}*/

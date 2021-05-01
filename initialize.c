@@ -10,6 +10,13 @@ struct Board *bd;
 struct Board *undo_bd;
 char board[64]; 
 
+// For perft debugging
+int captures = 0;
+int ep = 0;
+int castles = 0;
+int promotions = 0;
+int checks = 0;
+
 void init_mv_notation() {
 
 	char *temp_mv_notation[64] = {
@@ -73,39 +80,6 @@ void init_lookup_tables_mv_list() {
 	}
 }
 
-void init_tmp_board(struct Board *tmp) {
-	tmp->WhitePawns = 0ULL;
-	tmp->WhiteRooks = 0ULL;
-	tmp->WhiteKnights = 0ULL;
-	tmp->WhiteBishops = 0ULL;
-	tmp->WhiteQueens = 0ULL;
-	tmp->WhiteKing = 0ULL;
-
-	tmp->BlackPawns = 0ULL;
-	tmp->BlackRooks = 0ULL;
-	tmp->BlackKnights = 0ULL;
-	tmp->BlackBishops = 0ULL;
-	tmp->BlackQueens = 0ULL;
-	tmp->BlackKing = 0ULL;
-
-	tmp->WhitePieces = 0ULL;
-	tmp->BlackPieces = 0ULL;
-	tmp->WhiteAttacking = 0ULL;
-	tmp->BlackAttacking = 0ULL;
-	tmp->AllPieces = 0ULL;
-
-	tmp->to_move = 0;
-
-	tmp->castle[0] = '\0';
-	tmp->castle[1] = '\0';
-	tmp->castle[2] = '\0';
-	tmp->castle[3] = '\0';
-	
-	tmp->ep = 0ULL;
-
-	tmp->half_move = 0;
-	tmp->whole_move = 1;
-}
 void init_board() {
 	bd = (struct Board *)malloc(sizeof(struct Board));
 	bd->WhitePawns = 0ULL;
@@ -205,8 +179,8 @@ void copy(struct Board *to, struct Board *from) {
 	
 	to->ep = from->ep;
 
-	//to->half_move = from->half_move;
-	//to->whole_move = from->whole_move;
+	to->half_move = from->half_move;
+	to->whole_move = from->whole_move;
 }
 
 void init_visual_board() {
