@@ -49,7 +49,25 @@ U64 Perft(int depth) {
 		//printf("Print undo char board after undo\n");
 		//printUndoCharBoard();
 	}
-	free(mv_list->moves[0].undo);
+	int q, e, c;
+	q = 1;
+	e = 1;
+	c = 1;
+	for (i = 0; i < mv_list->total_count; i++) {
+		int curr_mv = mv_list->moves[i].mv;
+		int flag = (curr_mv & (0x03<<14))>>14;
+		if(flag == 0 && q) {
+			free(mv_list->moves[i].undo);
+			q = 0;
+		} else if(flag == 2 && e) {
+			free(mv_list->moves[i].undo);
+			e = 0;
+		} else if(flag == 3 && c) {
+			free(mv_list->moves[i].undo);
+			c = 0;
+		}
+	}
+
 	free(mv_list);
 	return nodes;
 }

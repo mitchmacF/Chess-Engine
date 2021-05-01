@@ -67,3 +67,7 @@ extern void initState();
 //void Perft(int depth, struct Move_list *mv_list);
 U64 Perft(int depth);
 //void PerftTest(int depth);
+
+/* Search and Evaluation */
+extern int Evaluate();
+extern int AlphaBeta(int depth, int alpha, int beta);

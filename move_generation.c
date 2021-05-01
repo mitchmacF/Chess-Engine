@@ -48,10 +48,13 @@ void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsign
 	U64 current_move, from_U64, to_U64;
 	unsigned int to;
 	promotion = 0;
-
+	
 	struct Board *tmp;
-	tmp = (struct Board *)malloc(sizeof(struct Board));
-	copy(tmp, bd);
+	if(moves) {
+		//struct Board *tmp;
+		tmp = (struct Board *)malloc(sizeof(struct Board));
+		copy(tmp, bd);
+	}
 	//printboard(moves);
 	//printf("\n");
 	while(moves) {
