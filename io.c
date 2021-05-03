@@ -8,7 +8,7 @@
 
 struct Move_list *mv_list;
 void printMoveList(struct Move_list *mv_list) {
-	int i, curr_mv, score, flag; 
+	int i, curr_mv/*, score*/, flag; 
 	char *from, *to, *piece;
 	Piece pc;
 
@@ -16,7 +16,7 @@ void printMoveList(struct Move_list *mv_list) {
 	
 	for(i = 0; i < mv_list->total_count; i++) {
 		curr_mv = mv_list->moves[i].mv;
-		score = mv_list->moves[i].mv_score;
+		//score = mv_list->moves[i].mv_score;
 		pc = mv_list->moves[i].pc;
 
 		from = move_notation[ (curr_mv & (0x3f))    ];
@@ -70,13 +70,14 @@ void printMoveList(struct Move_list *mv_list) {
 
 void printMove(Move mv) {
 	char *from, *to, *piece;
-	int curr_mv, pc; 
+	int curr_mv, pc, flag; 
 
 	curr_mv = mv.mv;
 	pc = mv.pc;
 
 	from = move_notation[ (curr_mv & (0x3f))    ];
 	to =   move_notation[ (curr_mv & (0x3f<<6))>>6 ];
+	flag = (curr_mv & (0x03<<14))>>14;
 
 	switch(pc) {
 		case 1: 
@@ -101,9 +102,26 @@ void printMove(Move mv) {
 			printf("Error -> no piece detected");
 			break;
 	}
+	switch(flag) {
+		case 0:
+			printf("%s%s %s    ", from, to, piece);
+			break;
+		case 1:
+			printf("%s%s PROMOTION    ", from, to);
+			break;
+		case 2: 
+			printf("%s%s EN PAS    ", from, to);
+			break;
+		case 3: 
+			printf("%s%s CASTLE    ", from, to);
+			break;
+		default:
+			printf("Move flag not set!!\n");
+			break;
+	}
 
 	//printf("%s%s %s\n", from, to, piece);
-	printf("%s%s ", from, to);
+	//printf("%s%s ", from, to);
 }
 
 void printboard(U64 n){

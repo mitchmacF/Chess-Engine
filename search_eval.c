@@ -1,4 +1,18 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <limits.h>
+#include <stdbool.h>
+#include <limits.h>
+#include "board.h"
+#include "extern.h"
+
+#define INFINITY INT_MAX
+/* Macros */
+#define U64toIDX(c) bitScanForward(c)
+#define IDXtoU64(c) getPosition(c)
+/* Macros */
 
 int Evaluate() {
 	int score = 0;
@@ -17,9 +31,9 @@ int Evaluate() {
 			else if(w_piece & bd->WhiteQueens)
 				score += 9;
 
-			Pop(w_pieces);
+			w_pieces = Pop(w_pieces);
 		}
-	} else (bd->to_move == BLACK) {
+	} else if (bd->to_move == BLACK) {
 		U64 b_pieces = bd->BlackPieces;
 		while(b_pieces) {
 			U64 b_piece = IDXtoU64(U64toIDX(b_pieces));
@@ -27,14 +41,14 @@ int Evaluate() {
 				score += 1;
 			else if(b_piece & bd->BlackKnights)
 				score += 3;
-			else if(w_piece & bd->BlackBishops)
+			else if(b_piece & bd->BlackBishops)
 				score += 3;
-			else if(w_piece & bd->BlackRooks)
+			else if(b_piece & bd->BlackRooks)
 				score += 5;
-			else if(w_piece & bd->BlackQueens)
+			else if(b_piece & bd->BlackQueens)
 				score += 9;
 
-			Pop(b_pieces);
+			b_pieces = Pop(b_pieces);
 		}
 	}
 
@@ -52,8 +66,14 @@ int AlphaBeta(int depth, int alpha, int beta) {
 
 	generateAllMoves(mv_list);
 	for (int i = 0; i < mv_list->total_count; i++) {
-		Mv mv = mv_list->moves[i].mv;
+		if(!i) {
+			printf("DEPTH : %d\n", depth);
+			printMoveList(mv_list);
+			printf("\n");
+			printCharBoard();
+		}
 		if(!make_move(mv_list->moves[i])) {
+			undo_move(bd, mv_list->moves[i].undo);
 			continue;
 		}
 		int val = -AlphaBeta(depth - 1, -beta, -alpha);
@@ -68,4 +88,37 @@ int AlphaBeta(int depth, int alpha, int beta) {
 	free(mv_list->moves[0].undo);
 	free(mv_list);
 	return alpha;
+}
+
+void Search() {
+
+	Move curr_move, best_move;
+	int i, curr_move_score = 0, best_move_score = 0;
+	struct Move_list *mv_list;
+	
+	mv_list = (struct Move_list *)malloc(sizeof(struct Move_list));
+	mv_list->total_count = 0;
+
+	generateAllMoves(mv_list);
+	best_move = mv_list->moves[0];
+	for (i = 0; i < mv_list->total_count; i++) {
+		//if(!i) 
+		//	printMoveList(mv_list);
+		curr_move = mv_list->moves[i];
+		if(!make_move(mv_list->moves[i])) {
+			undo_move(bd, mv_list->moves[i].undo);
+			continue;
+		}
+		curr_move_score = AlphaBeta(3, -INFINITY, INFINITY);
+		printf("RETURN FROM ALPHABETA\n");
+	
+		if(curr_move_score > best_move_score) {
+			best_move_score = curr_move_score;
+			best_move = curr_move;
+		}
+			
+		undo_move(bd, mv_list->moves[i].undo);
+	}
+	make_move(best_move);
+	free(mv_list);
 }

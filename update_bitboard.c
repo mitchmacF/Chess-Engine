@@ -66,12 +66,12 @@ bool make_move(Move mv) {
 	// check if move leaves King in check
 	if(bd->to_move == WHITE) {
 		if(attacked(bd->WhiteKing, bd->AllPieces, bd->WhitePieces)) {
-			copy(bd, undo_bd);
+			//copy(bd, undo_bd);
 			return 0;
 		}
 	} else if(bd->to_move == BLACK) {
 		if(attacked(bd->BlackKing, bd->AllPieces, bd->BlackPieces)) {
-			copy(bd, undo_bd);
+			//copy(bd, undo_bd);
 			return 0;
 		}
 	}
@@ -215,6 +215,7 @@ void update_bb_promotion(Piece pc, U64 to, U64 from, int promotion) {
 		}
 		bd->AllPieces ^= from;
 		bd->AllPieces |= to;
+		bd->ep = 0;
 }
 
 void update_bb_enPas(Piece pc, U64 to, U64 from) {
