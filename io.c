@@ -4,7 +4,12 @@
 #include "board.h"
 #include "extern.h"
 
+/* Macros */
 #define rank_file_idx(r, f) ( ((r-1) * 8) + (f-1) )
+
+#define U64toIDX(c) bitScanForward(c)
+#define IDXtoU64(c) getPosition(c)
+/* Macros */
 
 struct Move_list *mv_list;
 void printMoveList(struct Move_list *mv_list) {
@@ -102,26 +107,26 @@ void printMove(Move mv) {
 			printf("Error -> no piece detected");
 			break;
 	}
-	switch(flag) {
+	/*switch(flag) {
 		case 0:
-			printf("%s%s %s    ", from, to, piece);
+			printf("%s%s %s    \n", from, to, piece);
 			break;
 		case 1:
-			printf("%s%s PROMOTION    ", from, to);
+			printf("%s%s PROMOTION    \n", from, to);
 			break;
 		case 2: 
-			printf("%s%s EN PAS    ", from, to);
+			printf("%s%s EN PAS    \n", from, to);
 			break;
 		case 3: 
-			printf("%s%s CASTLE    ", from, to);
+			printf("%s%s CASTLE    \n", from, to);
 			break;
 		default:
 			printf("Move flag not set!!\n");
 			break;
-	}
+	}*/
 
 	//printf("%s%s %s\n", from, to, piece);
-	//printf("%s%s ", from, to);
+	printf("%s%s", from, to);
 }
 
 void printboard(U64 n){
@@ -583,4 +588,97 @@ void parseFEN(char *FEN) {
 
 	/* all pieces */
 	bd->AllPieces = bd->WhitePieces | bd->BlackPieces;
+}
+
+Move parseMove(char *ptrChar) {
+	U64 current_move, from_U64;
+	int flag, i, promotion = 0;
+	Piece pc;
+
+	Move INVALID = {0, 0, 0, NULL};
+
+	if(ptrChar[0] > 'h' || ptrChar[0] < 'a') return INVALID;
+	if(ptrChar[1] > '8' || ptrChar[1] < '1') return INVALID;
+	if(ptrChar[2] > 'h' || ptrChar[2] < 'a') return INVALID;
+	if(ptrChar[3] > '8' || ptrChar[3] < '1') return INVALID;
+
+	unsigned int from = rank_file_idx(ptrChar[1] - '1' + 1, ptrChar[0] - 'a' + 1);
+	unsigned int to = rank_file_idx(ptrChar[3] - '1' + 1, ptrChar[2] - 'a' + 1);
+
+	if((from < 0 || from > 63) || (to < 0 || to > 63))  
+		return INVALID;
+	
+	struct Board *tmp;
+	tmp = (struct Board *)malloc(sizeof(struct Board));
+	copy(tmp, bd);
+
+	// Non promotion move
+	if(ptrChar[4] == ' ' || ptrChar[4] == '\n') {
+		// en passant
+		if((to == bd->ep) && (ptrChar[0] == 'p' || ptrChar[0] == 'P')) {
+			flag = 0x02;
+			// castle
+		} else if((ptrChar[0] == 'k' || ptrChar[0] == 'K') && (abs(to - from) == 2)) {
+			flag = 0x03;
+			// non special move
+		} else {
+			flag = 0x00;
+		}
+	// Promotion move
+	} else {
+		flag = 0x01;
+		if(ptrChar[4] == 'q' || ptrChar[4] == 'Q') {
+			promotion = QUEEN - 2; 
+		}else if(ptrChar[4] == 'r' || ptrChar[4] == 'R') {
+			promotion = ROOK - 2; 
+		}else if(ptrChar[4] == 'b' || ptrChar[4] == 'B') {
+			promotion = BISHOP - 2; 
+		}else if(ptrChar[4] == 'n' || ptrChar[4] == 'N') {
+			promotion = KNIGHT - 2; 
+		} else {
+			printf("ERROR: promotion error in parse move\n");
+		}
+	}
+	from_U64 = IDXtoU64(from);
+	
+	if(from_U64 & bd->WhiteKing || from_U64 & bd->BlackKing) {
+		pc = KING; 
+	}else if(from_U64 & bd->WhiteQueens || from_U64 & bd->BlackQueens) {
+		pc = QUEEN;
+	}else if(from_U64 & bd->WhiteRooks || from_U64 & bd->BlackRooks) {
+		pc = ROOK;
+	}else if(from_U64 & bd->WhiteBishops || from_U64 & bd->BlackBishops) {
+		pc = BISHOP;
+	}else if(from_U64 & bd->WhiteKnights || from_U64 & bd->BlackKnights) {
+		pc = KNIGHT;
+	}else if(from_U64 & bd->WhitePawns || from_U64 & bd->BlackPawns) {
+		pc = PAWN;
+	}else {
+		printf("ERROR: piece type unknown\n");
+		exit(0);
+	}
+	
+	current_move = 
+		((from      & 	0x3f)		) |
+		((to        & 	0x3f) << 6 	) |
+		((promotion & 	0x03) << 12	) | 
+		((flag      & 	0x03) << 14	);      
+
+	Move mv = {current_move, 0, pc, tmp};
+
+	struct Move_list *mv_list;
+	mv_list = (struct Move_list *)malloc(sizeof(struct Move_list));
+	mv_list->total_count = 0;
+	
+	generateAllMoves(mv_list);
+	//printMoveList(mv_list);
+	for (i = 0; i < mv_list->total_count; i++) {
+		Move curr_mv = mv_list->moves[i];
+		if(mv.mv == curr_mv.mv && mv.mv_score == curr_mv.mv_score && mv.pc == curr_mv.pc) { 
+			return mv;
+		}
+	}
+	printf("ERROR: ILLEGAL MOVES\n");
+	exit(0);
+	return mv;
 }

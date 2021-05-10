@@ -17,28 +17,32 @@ int main(int argc, char **argv) {
 	}*/
 
 	//char *FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // 1 
-	char *FEN = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"; // 2
+	//char *FEN = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"; // 2
 	/* Initialize lookup tables, board, etc. */
 	init_all();
+	Uci_Loop();
 
 	/* Parse board position string */
-	parseFEN(FEN);
+	//parseFEN(FEN);
 
 	
 	/*printCharBoard();
+	printf("\n");
 	Search();
 	printCharBoard();
+	printf("\n");
 	Search();
-	printCharBoard();*/
+	printCharBoard();
+	printf("\n");*/
 
-	int depth = atoi(argv[1]);
+	/*int depth = atoi(argv[1]);
 	U64 nodes = Perft(depth);
 	printf("Total nodes = %llu\n", nodes);
 	printf("Captures %d\n", captures);
 	printf("Castles %d\n", castles);
 	printf("EP %d\n", ep);
 	printf("Promotions %d\n", promotions);
-	printf("Checks %d\n", checks);
+	printf("Checks %d\n", checks);*/
 
 	free(tbls);
 	free(bd);

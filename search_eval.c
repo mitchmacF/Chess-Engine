@@ -66,12 +66,12 @@ int AlphaBeta(int depth, int alpha, int beta) {
 
 	generateAllMoves(mv_list);
 	for (int i = 0; i < mv_list->total_count; i++) {
-		if(!i) {
+		/*if(!i) {
 			printf("DEPTH : %d\n", depth);
 			printMoveList(mv_list);
 			printf("\n");
 			printCharBoard();
-		}
+		}*/
 		if(!make_move(mv_list->moves[i])) {
 			undo_move(bd, mv_list->moves[i].undo);
 			continue;
@@ -110,7 +110,7 @@ void Search() {
 			continue;
 		}
 		curr_move_score = AlphaBeta(3, -INFINITY, INFINITY);
-		printf("RETURN FROM ALPHABETA\n");
+		//printf("RETURN FROM ALPHABETA\n");
 	
 		if(curr_move_score > best_move_score) {
 			best_move_score = curr_move_score;
@@ -120,5 +120,8 @@ void Search() {
 		undo_move(bd, mv_list->moves[i].undo);
 	}
 	make_move(best_move);
+	printf("bestmove ");
+	printMove(best_move);
+	printf("\n");
 	free(mv_list);
 }

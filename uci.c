@@ -15,60 +15,69 @@
 #include "extern.h"
 
 #define INPUTBUFFER 400 * 6
-#define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+char *start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // go depth 6 wtime 180000 btime 100000 binc 1000 winc 1000 movetime 1000 movestogo 40
 //void ParseGo(char* line, S_SEARCHINFO *info, S_BOARD *pos) {
 void ParseGo(char* line) {
     
-	int depth = -1, movestogo = 30,movetime = -1;
+	/*int depth = -1, movestogo = 30,movetime = -1;
 	int time = -1, inc = 0;
     char *ptr = NULL;
 	//info->timeset = FALSE;
 	
 	if ((ptr = strstr(line,"infinite"))) {
 		;
+		printf("reached\n");
 	} 
 	
 	//if ((ptr = strstr(line,"binc")) && pos->side == BLACK) {
 	if ((ptr = strstr(line,"binc")) && bd->to_move == BLACK) {
 		inc = atoi(ptr + 5);
+		printf("reached\n");
 	}
 	
 	//if ((ptr = strstr(line,"winc")) && pos->side == WHITE) {
 	if ((ptr = strstr(line,"winc")) && bd->to_move == WHITE) {
 		inc = atoi(ptr + 5);
+		printf("reached\n");
 	} 
 	
 	//if ((ptr = strstr(line,"wtime")) && pos->side == WHITE) {
 	if ((ptr = strstr(line,"wtime")) && bd->to_move == WHITE) {
 		time = atoi(ptr + 6);
+		printf("reached\n");
 	} 
 	  
 	//if ((ptr = strstr(line,"btime")) && pos->side == BLACK) {
 	if ((ptr = strstr(line,"btime")) && bd->to_move == BLACK) {
 		time = atoi(ptr + 6);
+		printf("reached\n");
 	} 
 	  
 	if ((ptr = strstr(line,"movestogo"))) {
 		movestogo = atoi(ptr + 10);
+		printf("reached\n");
 	}
 	  
 	if ((ptr = strstr(line,"movetime"))) {
 		movetime = atoi(ptr + 9);
+		printf("reached\n");
 	}
 	  
 	if ((ptr = strstr(line,"depth"))) {
 		depth = atoi(ptr + 6);
+		printf("reached\n");
 	} 
 	
 	if(movetime != -1) {
 		time = movetime;
+		printf("reached\n");
 		movestogo = 1;
 	}
 	
 	//info->starttime = GetTimeMs();
-	//info->depth = depth;
+	//info->depth = depth;*/
 	
 	/*if(time != -1) {
 		info->timeset = TRUE;
@@ -85,49 +94,52 @@ void ParseGo(char* line) {
 		time,info->starttime,info->stoptime,info->depth,info->timeset);
 	SearchPosition(pos, info);*/
 	Search();
+	printCharBoard();
 }
 
 // position fen fenstr
 // position startpos
 // ... moves e2e4 e7e5 b7b8q
 //void ParsePosition(char* lineIn, S_BOARD *pos) {
-void ParsePosition(char* lineIn, char *FEN) {
-	
+void ParsePosition(char* lineIn) {
 	lineIn += 9;
     char *ptrChar = lineIn;
 	
     if(strncmp(lineIn, "startpos", 8) == 0){
-        //ParseFen(START_FEN, pos);
-		parseFEN(START_FEN);
+		clear_board();
+		parseFEN(start_pos);
     } else {
-        ptrChar = strstr(lineIn, "fen");
-        if(ptrChar == NULL) {
-            //ParseFen(START_FEN, pos);
-			parseFEN(START_FEN);
-        } else {
+		ptrChar = strstr(lineIn, "fen");
+		if(ptrChar == NULL) {
+			//printf("1 Initializing start pos\n");
+			//parseFEN(start_pos);
+		} else {
             ptrChar+=4;
-            parseFEN(FEN);
+            parseFEN(ptrChar);
         }
     }
 	
 	ptrChar = strstr(lineIn, "moves");
-	int move;
 	
 	if(ptrChar != NULL) {
         ptrChar += 6;
         while(*ptrChar) {
-			  printf("PARSE MOVES HERE\n");
-			  break;
-              /*move = ParseMove(ptrChar,pos);
-			  if(move == NOMOVE) break;
-			  MakeMove(pos, move);
-              pos->ply=0;
-              while(*ptrChar && *ptrChar!= ' ') ptrChar++;
-              ptrChar++;*/
+			  //printf("PARSE MOVES HERE\n");
+			  //break;
+              Move mv = parseMove(ptrChar);
+			  //printMove(mv);
+			  if(!mv.mv && !mv.mv_score && !mv.pc) {
+				  printf("ERROR: INVALID\n");
+				  exit(0);
+			  }
+			  make_move(mv);
+              //pos->ply=0;
+			  while(*ptrChar && *ptrChar != ' ') ptrChar++;
+			  ptrChar++;
         }
     }
+	printf("\n");
 	printCharBoard();
-	//PrintBoard(pos);	
 }
 
 void Uci_Loop() {
@@ -136,16 +148,11 @@ void Uci_Loop() {
     setbuf(stdout, NULL);
 	
 	char line[INPUTBUFFER];
-    //printf("id name %s\n", );
-    printf("id author Bluefever\n");
+    printf("id name %s\n", "Mitchell");
+    printf("id author my_engine\n");
     printf("uciok\n");
 	int quit = 0;
 
-	char *pos;
-    /*S_BOARD pos[1];
-    S_SEARCHINFO info[1];   
-    InitPvTable(pos->PvTable);*/
-	
 	while (1) {
 		memset(&line[0], 0, sizeof(line));
         fflush(stdout);
@@ -159,24 +166,20 @@ void Uci_Loop() {
             printf("readyok\n");
             continue;
         } else if (!strncmp(line, "position", 8)) {
-            ParsePosition(line, pos);
+            ParsePosition(line);
         } else if (!strncmp(line, "ucinewgame", 10)) {
-            ParsePosition("position startpos\n", pos);
+			parseFEN(start_pos);
+			printCharBoard();
+            //ParsePosition("position startpos\n");
         } else if (!strncmp(line, "go", 2)) {
-            //ParseGo(line, info, pos);
             ParseGo(line);
         } else if (!strncmp(line, "quit", 4)) {
-            //info->quit = TRUE;
 			quit = 1;
             break;
         } else if (!strncmp(line, "uci", 3)) {
-            //printf("id name %s\n",NAME);
-            printf("id author Bluefever\n");
+            printf("id author Mitchell\n");
             printf("uciok\n");
         }
 		if(quit) break;
     }
-	free(tbls);
-	free(bd);
-	free(undo_bd);
 }

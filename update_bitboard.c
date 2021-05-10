@@ -61,6 +61,7 @@ bool make_move(Move mv) {
 			break;
 		default:
 			fprintf(stderr, "ERROR: flag\n");	
+			exit(0);
 	}
 
 	// check if move leaves King in check
@@ -119,9 +120,12 @@ bool make_move(Move mv) {
 	//mv_list->total_count = 0;
 	if(bd->to_move == WHITE) {
 		bd->to_move = BLACK;
-	} else {
+	} else if(bd->to_move == BLACK) {
 		bd->to_move = WHITE;
 		bd->whole_move++;
+	} else {
+		printf("ERROR: to_move error\n");
+		exit(0);
 	}
 	
 	return 1;

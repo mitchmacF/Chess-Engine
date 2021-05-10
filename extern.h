@@ -10,6 +10,7 @@ extern int ep;
 extern int castles;
 extern int promotions;
 extern int checks;
+extern Move INVALID;
 
 /* Move Generation Help */
 extern U64 bitScanForward(U64 bb);
@@ -57,6 +58,8 @@ extern void printCharBoard();
 extern void printUndoCharBoard();
 extern void fillCharBoard();
 extern void printMove(Move mv);
+extern Move parseMove(char *ptrChar);
+extern void clear_board();
 
 /* Initialization */
 extern void copy(struct Board *to, struct Board *from);
@@ -69,6 +72,10 @@ U64 Perft(int depth);
 //void PerftTest(int depth);
 
 /* Search and Evaluation */
-extern int Evaluate();
-extern int AlphaBeta(int depth, int alpha, int beta);
+//extern int Evaluate();
+//extern int AlphaBeta(int depth, int alpha, int beta);
 extern void Search();
+
+//extern void ParseGo(char* line);
+//extern void ParsePosition(char* lineIn);
+extern void Uci_Loop();

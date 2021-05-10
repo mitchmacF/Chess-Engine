@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I. -g -Wall 
+CFLAGS=-I. -g
 
 all:
 	$(CC) $(CFLAGS) board.c uci.c search_eval.c move_generation.c update_bitboard.c io.c initialize.c perft.c -o chess

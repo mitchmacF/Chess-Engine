@@ -77,7 +77,6 @@ void fill_move_list(U64 moves, unsigned int from, unsigned int promotion, unsign
 				((promotion & 	0x03) << 12	) | 
 				((flag      & 	0x03) << 14	);      
 
-
 			Move mv_q = {current_move, 0, p, tmp};
 			mv_list->moves[mv_list->total_count] = mv_q;
 			mv_list->total_count++;

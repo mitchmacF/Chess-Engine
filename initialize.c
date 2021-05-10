@@ -9,6 +9,7 @@ char *move_notation[64];
 struct Board *bd;
 struct Board *undo_bd;
 char board[64]; 
+Move INVALID = {0, 0, 0, 0};
 
 // For perft debugging
 int captures = 0;
@@ -20,14 +21,14 @@ int checks = 0;
 void init_mv_notation() {
 
 	char *temp_mv_notation[64] = {
-		"A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
-		"A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2",
-		"A3", "B3", "C3", "D3", "E3", "F3", "G3", "H3",
-		"A4", "B4", "C4", "D4", "E4", "F4", "G4", "H4",
-		"A5", "B5", "C5", "D5", "E5", "F5", "G5", "H5",
-		"A6", "B6", "C6", "D6", "E6", "F6", "G6", "H6",
-		"A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7",
-		"A8", "B8", "C8", "D8", "E8", "F8", "G8", "H8"
+		"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+		"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+		"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+		"a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+		"a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+		"a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+		"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+		"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 	};
 
 	for(int i = 0; i < 64; i++) {
@@ -192,4 +193,37 @@ void init_all() {
 	init_board();
 	init_visual_board();
 	init_mv_notation();
+}
+
+void clear_board() {
+	bd->WhitePawns = 0ULL;
+	bd->WhiteRooks = 0ULL;
+	bd->WhiteKnights = 0ULL;
+	bd->WhiteBishops = 0ULL;
+	bd->WhiteQueens = 0ULL;
+	bd->WhiteKing = 0ULL;
+
+	bd->BlackPawns = 0ULL;
+	bd->BlackRooks = 0ULL;
+	bd->BlackKnights = 0ULL;
+	bd->BlackBishops = 0ULL;
+	bd->BlackQueens = 0ULL;
+	bd->BlackKing = 0ULL;
+
+	bd->WhitePieces = 0ULL;
+	bd->BlackPieces = 0ULL;
+	bd->WhiteAttacking = 0ULL;
+	bd->BlackAttacking = 0ULL;
+	bd->AllPieces = 0ULL;
+
+	bd->to_move = 0; 
+	bd->castle[0] = '-';
+	bd->castle[1] = '-';
+	bd->castle[2] = '-';
+	bd->castle[3] = '-';
+	
+	bd->ep = 0ULL;
+
+	bd->half_move = 0;
+	bd->whole_move = 1;
 }
