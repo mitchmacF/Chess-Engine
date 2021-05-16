@@ -74,7 +74,7 @@ U64 Perft(int depth);
 /* Search and Evaluation */
 //extern int Evaluate();
 //extern int AlphaBeta(int depth, int alpha, int beta);
-extern void Search();
+extern void Search(int time);
 
 //extern void ParseGo(char* line);
 //extern void ParsePosition(char* lineIn);

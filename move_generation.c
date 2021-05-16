@@ -243,53 +243,53 @@ void genMoves(U64 (*f)(U64, U64, U64), U64 pieces, U64 all_pieces, U64 side, Pie
 	}
 }
 
+/* Generating all moves to fill move list - Order of moves matters here for alpha beta search */
 void generateAllMoves(struct Move_list *mv_list) {
 	U64 (*fn_ptr)(U64, U64, U64);
-	genSpecialMoves(bd->to_move, mv_list);
 	
 	if(bd->to_move == WHITE) {
-		
-		fn_ptr = &generate_white_pawn_moves;
-		genMoves(fn_ptr, bd->WhitePawns, bd->AllPieces, bd->WhitePieces, PAWN, mv_list);
-
-		fn_ptr = &generate_king_moves;
-		genMoves(fn_ptr, bd->WhiteKing, bd->AllPieces, bd->WhitePieces, KING, mv_list);
-
 		fn_ptr = &generate_queen_moves;
 		genMoves(fn_ptr, bd->WhiteQueens, bd->AllPieces, bd->WhitePieces, QUEEN, mv_list);
+		
+		fn_ptr = &generate_rook_moves;
+		genMoves(fn_ptr, bd->WhiteRooks, bd->AllPieces, bd->WhitePieces, ROOK, mv_list);
 
 		fn_ptr = &generate_bishop_moves;
 		genMoves(fn_ptr, bd->WhiteBishops, bd->AllPieces, bd->WhitePieces, BISHOP, mv_list);
 
 		fn_ptr = &generate_knight_moves;
 		genMoves(fn_ptr, bd->WhiteKnights, bd->AllPieces, bd->WhitePieces, KNIGHT, mv_list);
-
-		fn_ptr = &generate_rook_moves;
-		genMoves(fn_ptr, bd->WhiteRooks, bd->AllPieces, bd->WhitePieces, ROOK, mv_list);
-
-	} else if (bd->to_move == BLACK) {
 		
-		fn_ptr = &generate_black_pawn_moves;
-		genMoves(fn_ptr, bd->BlackPawns, bd->AllPieces, bd->BlackPieces, PAWN, mv_list);
-
+		fn_ptr = &generate_white_pawn_moves;
+		genMoves(fn_ptr, bd->WhitePawns, bd->AllPieces, bd->WhitePieces, PAWN, mv_list);
+		
 		fn_ptr = &generate_king_moves;
-		genMoves(fn_ptr, bd->BlackKing, bd->AllPieces, bd->BlackPieces, KING, mv_list);
-
+		genMoves(fn_ptr, bd->WhiteKing, bd->AllPieces, bd->WhitePieces, KING, mv_list);
+		
+	} else if (bd->to_move == BLACK) {
 		fn_ptr = &generate_queen_moves;
 		genMoves(fn_ptr, bd->BlackQueens, bd->AllPieces, bd->BlackPieces, QUEEN, mv_list);
+
+		fn_ptr = &generate_rook_moves;
+		genMoves(fn_ptr, bd->BlackRooks, bd->AllPieces, bd->BlackPieces, ROOK, mv_list);
 
 		fn_ptr = &generate_bishop_moves;
 		genMoves(fn_ptr, bd->BlackBishops, bd->AllPieces, bd->BlackPieces, BISHOP, mv_list);
 
 		fn_ptr = &generate_knight_moves;
 		genMoves(fn_ptr, bd->BlackKnights, bd->AllPieces, bd->BlackPieces, KNIGHT, mv_list);
-
-		fn_ptr = &generate_rook_moves;
-		genMoves(fn_ptr, bd->BlackRooks, bd->AllPieces, bd->BlackPieces, ROOK, mv_list);
+		
+		fn_ptr = &generate_black_pawn_moves;
+		genMoves(fn_ptr, bd->BlackPawns, bd->AllPieces, bd->BlackPieces, PAWN, mv_list);
+		
+		fn_ptr = &generate_king_moves;
+		genMoves(fn_ptr, bd->BlackKing, bd->AllPieces, bd->BlackPieces, KING, mv_list);
 
 	} else {
 		printf("Error: side_to_move\n");
 	}
+
+	genSpecialMoves(bd->to_move, mv_list);
 }
 
 U64 generate_castling_moves(U64 king_location, U64 all_pieces, U64 side) {

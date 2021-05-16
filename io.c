@@ -184,8 +184,8 @@ void printCharBoard() {
 	}
 	printf("\n");
 	printf("ep: %llu\n", bd->ep);
-	printf("half_move: %d\n", bd->half_move);
-	//printf("%d %d\n\n", bd->half_move, bd->whole_move);
+	//printf("half_move: %d\n", bd->half_move);
+	printf("%d %d\n\n", bd->half_move, bd->whole_move);
 }
 
 void printUndoCharBoard() {
@@ -591,6 +591,7 @@ void parseFEN(char *FEN) {
 }
 
 Move parseMove(char *ptrChar) {
+	printf("%s\n", ptrChar);
 	U64 current_move, from_U64;
 	int flag, i, promotion = 0;
 	Piece pc;
@@ -604,6 +605,7 @@ Move parseMove(char *ptrChar) {
 
 	unsigned int from = rank_file_idx(ptrChar[1] - '1' + 1, ptrChar[0] - 'a' + 1);
 	unsigned int to = rank_file_idx(ptrChar[3] - '1' + 1, ptrChar[2] - 'a' + 1);
+	from_U64 = IDXtoU64(from);
 
 	if((from < 0 || from > 63) || (to < 0 || to > 63))  
 		return INVALID;
@@ -612,13 +614,14 @@ Move parseMove(char *ptrChar) {
 	tmp = (struct Board *)malloc(sizeof(struct Board));
 	copy(tmp, bd);
 
+	// None of this is right -> ptrChar holds squares not pieces
 	// Non promotion move
 	if(ptrChar[4] == ' ' || ptrChar[4] == '\n') {
 		// en passant
-		if((to == bd->ep) && (ptrChar[0] == 'p' || ptrChar[0] == 'P')) {
+		if(to == bd->ep && (from_U64 & bd->WhitePawns || from_U64 & bd->BlackPawns)) {
 			flag = 0x02;
 			// castle
-		} else if((ptrChar[0] == 'k' || ptrChar[0] == 'K') && (abs(to - from) == 2)) {
+		} else if(abs(from - to) == 2 && (from_U64 & bd->WhiteKing || from_U64 & bd->BlackKing)) {
 			flag = 0x03;
 			// non special move
 		} else {
@@ -639,7 +642,6 @@ Move parseMove(char *ptrChar) {
 			printf("ERROR: promotion error in parse move\n");
 		}
 	}
-	from_U64 = IDXtoU64(from);
 	
 	if(from_U64 & bd->WhiteKing || from_U64 & bd->BlackKing) {
 		pc = KING; 
@@ -677,6 +679,7 @@ Move parseMove(char *ptrChar) {
 		if(mv.mv == curr_mv.mv && mv.mv_score == curr_mv.mv_score && mv.pc == curr_mv.pc) { 
 			return mv;
 		}
+
 	}
 	printf("ERROR: ILLEGAL MOVES\n");
 	exit(0);
