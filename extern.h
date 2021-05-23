@@ -67,15 +67,10 @@ extern void init_all();
 extern void initState();
 
 /* Peft */
-//void Perft(int depth, struct Move_list *mv_list);
 U64 Perft(int depth);
-//void PerftTest(int depth);
 
 /* Search and Evaluation */
-//extern int Evaluate();
-//extern int AlphaBeta(int depth, int alpha, int beta);
 extern void Search(int time);
 
-//extern void ParseGo(char* line);
-//extern void ParsePosition(char* lineIn);
-extern void Uci_Loop();
+/* Uci protocol */
+extern void Uci();

@@ -29,9 +29,9 @@ typedef struct tagLINE {
 
 const int PawnTable[64] = {
 0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 0 ,
-5 ,  10,   5, -20, -20,  50,  10, 5 ,
-5 , -5 ,   0,  5 ,  3 ,  0 , -5 , 5 ,
-0 ,  0 ,   0,  25,  25,  0 ,  0 , 0 ,
+5 ,  5 ,  -3, -20, -20,  -3,  5 , 5 ,
+0 ,  0 ,   3,  5 ,  5 ,   3,  0 , 0 ,
+0 ,  0 ,   5,  29,  30,   5,  0 , 0 ,
 3 ,  5 ,  10,  20,  20,  10,  5 , 3 ,
 5 ,  10,  20,  30,  30,  20,  10, 5 ,
 50,  50,  50,  50,  50,  50,  50, 50,
@@ -40,11 +40,11 @@ const int PawnTable[64] = {
 
 const int KnightTable[64] = {
 -50, -40, -30, -30, -30, -30, -40, -50,
--40, -20,   0,   5,   5,   0, -20, -40, 
+-40, -20,   0,   4,   4,   0, -20, -40, 
 -30,   0,   5,  10,  10,   5,   0, -30, 
 -30,   5,  15,  20,  20,  15,   5, -30, 
--30,  10,  15,  20,  20,  15,   5, -30,
--30,  10,   8,  15,  15,   8,   5, -30,
+-30,  10,  15,  20,  20,  15,  10, -30,
+-30,  10,   8,  15,  15,   8,  10, -30,
 -40, -20,   0,   5,   5,   0, -20, -40,
 -50,- 40, -30, -30, -30, -30, -40, -50
 };
@@ -101,6 +101,19 @@ void sortMvList(struct Move_list *mv_list, LINE *pline) {
 	}
 }
 
+/*void sortMvList(struct Move_list *mv_list, LINE *pline) {
+	Move curr_mv, temp;
+	int i;
+	for(i = 0; i < mv_list->total_count; i++) {
+		curr_mv = mv_list->moves[i];
+		if(curr_mv.mv == best_move.mv && curr_mv.pc == best_move.pc) {
+			temp = mv_list->moves[0];
+			mv_list->moves[0] = curr_mv;
+			mv_list->moves[i] = temp;
+		}
+	}
+}*/
+
 int checkMate() {
 	struct Move_list *mv_list;
 	int foundLegal = 0;
@@ -131,15 +144,15 @@ int materialDifference() {
 	while(w_pieces) {
 		U64 w_piece = IDXtoU64(U64toIDX(w_pieces));
 		if(w_piece & bd->WhitePawns)
-			w_score += 100;
+			w_score += 110;
 		else if(w_piece & bd->WhiteKnights)
-			w_score += 300;
-		else if(w_piece & bd->WhiteBishops)
 			w_score += 310;
+		else if(w_piece & bd->WhiteBishops)
+			w_score += 320;
 		else if(w_piece & bd->WhiteRooks)
-			w_score += 500;
+			w_score += 510;
 		else if(w_piece & bd->WhiteQueens)
-			w_score += 900; 
+			w_score += 910; 
 
 		w_pieces = Pop(w_pieces);
 	}
@@ -148,15 +161,15 @@ int materialDifference() {
 	while(b_pieces) {
 		U64 b_piece = IDXtoU64(U64toIDX(b_pieces));
 		if(b_piece & bd->BlackPawns)
-			b_score += 100;
+			b_score += 110;
 		else if(b_piece & bd->BlackKnights)
-			b_score += 300;
-		else if(b_piece & bd->BlackBishops)
 			b_score += 310;
+		else if(b_piece & bd->BlackBishops)
+			b_score += 320;
 		else if(b_piece & bd->BlackRooks)
-			b_score += 500;
+			b_score += 510;
 		else if(b_piece & bd->BlackQueens)
-			b_score += 900;
+			b_score += 910;
 
 		b_pieces = Pop(b_pieces);
 	}
@@ -173,6 +186,8 @@ int Evaluate() {
 	int score = materialDifference();
 
 	// White Pieces Evaluation
+	// Pop off white pieces from bitboard and use position tables
+	// to determine score of their current position 
 	U64 white_pawns = bd->WhitePawns;
 	while(white_pawns) {
 		U64 wP = IDXtoU64(U64toIDX(white_pawns));
@@ -241,9 +256,11 @@ int AlphaBeta(int depth, int alpha, int beta, LINE *pline) {
 	
 	LINE line;
 	int val, legal = 0, best_score, curr_time;
+	Move curr_move;
 	struct Move_list *mv_list;
 	mv_list = (struct Move_list *)malloc(sizeof(struct Move_list));
 	mv_list->total_count = 0;
+	bool fFoundPv = false;
 
 	if (depth == 0) {
 		nodes++;
@@ -257,30 +274,30 @@ int AlphaBeta(int depth, int alpha, int beta, LINE *pline) {
 		sortMvList(mv_list, pline);
 	}
 	for (int i = 0; i < mv_list->total_count; i++) {
-		Move curr_move = mv_list->moves[i];
 		if(!make_move(mv_list->moves[i])) {
 			undo_move(bd, mv_list->moves[i].undo);
 			continue;
 		}
-		printf("depth %d 	alpha %d 		beta %d\n", depth, alpha, beta);
-		val = -AlphaBeta(depth - 1, -beta, -alpha, &line);
-		undo_move(bd, mv_list->moves[i].undo);
+		legal++;
+		if (fFoundPv) {
+			val = -AlphaBeta(depth - 1, -alpha - 1, -alpha, &line);
+			if ((val > alpha) && (val < beta)) {// Check for failure.
+				val = -AlphaBeta(depth - 1, -beta, -alpha, &line);
+			}
+		} else {
+			//printf("depth %d 	alpha %d 		beta %d\n", depth, alpha, beta);
+			val = -AlphaBeta(depth - 1, -beta, -alpha, &line);
+		}
+		//val = -AlphaBeta(depth - 1, -beta, -alpha, &line);
 		if(depth == search) {
-			if(i == 0) {
+			curr_move = mv_list->moves[i];
+			/*printMove(curr_move);
+			printf(" >> %d\n", val);*/
+			if((i == 0) || (legal == 1)) {
 				best_score = val;	
 				best_move = curr_move;
 			}
-			/*if(bd->to_move == WHITE) {
-				if(best_score < val) {
-					best_move = curr_move;
-					best_score = val;
-				}
-			} else {
-				if(best_score < val) {
-					best_move = curr_move;
-					best_score = val;
-				}
-			}*/
+
 			if(best_score < val) {
 				best_move = curr_move;
 				best_score = val;
@@ -294,9 +311,11 @@ int AlphaBeta(int depth, int alpha, int beta, LINE *pline) {
 			alpha = val;
 			pline->argmove[0] = mv_list->moves[i];
 			memcpy(pline->argmove + 1, line.argmove,
-				line.cmove * sizeof(Move));
+					line.cmove * sizeof(Move));
 			pline->cmove = line.cmove + 1;
+			fFoundPv = true;
 		}
+		undo_move(bd, mv_list->moves[i].undo);
 	}
 	free(mv_list->moves[0].undo);
 	free(mv_list);
@@ -313,17 +332,20 @@ void Search(int time) {
 	fstart = (double)start.tv_sec + (double)start.tv_nsec / 1000000000.;
 
 	LINE pline;
-	Move curr_move;
 	int i, mate = 0, score, curr_score = 0;
-	nodes = 0;
 		
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	
-	for(int depth = 1;depth < 3; depth++) {
+	for(int depth = 1;depth < 4; depth++) {
+		nodes = 0;
+		/* set global search position to depth */
 		search = depth;
 		
 		/* print score and best move */
 		score = AlphaBeta(depth, -INFINITY, INFINITY, &pline);
+		/*if(score == INFINITY) 
+			break;*/
+
 		printf("\n%d: score %d\n", depth, score);
 		printf("best move ");
 		printMove(best_move);
@@ -335,10 +357,10 @@ void Search(int time) {
 		printf("elapsed time: %lf nodes: %d\n", fnow-fstart, nodes);
 		printf("\n");
 
-		if(!timeLeft((int)(fnow-fstart), time)) {
+		/*if(!timeLeft((int)(fnow-fstart), time)) {
 			printf("TIMES UP\n");
 			break;
-		}
+		}*/
 	}
 	/*printf("\n");
 	for(i = 0; i < pline.cmove; i++) {

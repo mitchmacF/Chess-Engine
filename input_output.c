@@ -591,9 +591,9 @@ void parseFEN(char *FEN) {
 }
 
 Move parseMove(char *ptrChar) {
-	printf("%s\n", ptrChar);
 	U64 current_move, from_U64;
-	int flag, i, promotion = 0;
+	int flag, i; 
+	unsigned int promotion = 0;
 	Piece pc;
 
 	Move INVALID = {0, 0, 0, NULL};

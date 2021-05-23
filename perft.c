@@ -33,11 +33,11 @@ U64 Perft(int depth) {
 			//printf("\n");
 			int temp = 0;
 			temp = Perft(depth-1);
-			/*if(depth == 1) {
+			nodes += temp;
+			/*if(depth == search) {
 				printMove(mv_list->moves[i]);
 				printf(" %d\n", temp);
 			}*/
-			nodes += temp;
 			//printf("Check!!!\n");
 			//continue;
 		}
